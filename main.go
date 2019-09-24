@@ -6,12 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
-	"text/scanner"
 )
 
 type Lox struct {
 	errorReporter *ErrorReporter
+	scanner       *Scanner
 	hasError      bool
 }
 
@@ -20,7 +19,11 @@ func main() {
 
 	lox := &Lox{
 		errorReporter: &ErrorReporter{},
+		scanner: &Scanner{
+			tokens: []Token{},
+		},
 	}
+	lox.scanner.lox = lox
 
 	if len(args) > 1 {
 		fmt.Println("GLOX]: Usage: glox [script]")
@@ -54,12 +57,8 @@ func (l *Lox) runREPL() {
 }
 
 func (l *Lox) run(src string) {
-	var s scanner.Scanner
-	s.Init(strings.NewReader(src))
-	token := s.Scan()
-	for ; token != scanner.EOF; token = s.Scan() {
-		fmt.Println(s.Pos().Line, s.Pos().Column, token, s.TokenText())
-	}
+	l.scanner.source = src
+	l.scanner.scanTokens()
 }
 
 // TokenError implement the std err interface
@@ -67,19 +66,19 @@ type TokenError struct {
 	code   string
 	msg    string
 	line   int
-	Column int
+	column int
 }
 
 func (e *TokenError) Error() string {
 	// TODO: more elgant error display
-	return fmt.Sprintf("[GLOX] Error: Line%d Column %d, %s", e.line, e.Column, e.msg)
+	return fmt.Sprintf("[GLOX] Error: Line%d c %d, %s", e.line, e.column, e.msg)
 }
 
 // you will likely have multiple ways errors get displayed
 // on stderr, in an IDE’s error window, logged to a file, etc.
 type ErrorReporter struct{}
 
-func (e *ErrorReporter) error(err TokenError) {
+func (e *ErrorReporter) error(err error) {
 	// by default, we just print on the interface and then exit with 1
 	log.Fatal(err)
 }
