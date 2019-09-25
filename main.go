@@ -71,7 +71,7 @@ type TokenError struct {
 
 func (e *TokenError) Error() string {
 	// TODO: more elgant error display
-	return fmt.Sprintf("[GLOX] Error: Line%d c %d, %s", e.line, e.column, e.msg)
+	return fmt.Sprintf("[GLOX] Error: Line %d, Cloumn %d, %s", e.line, e.column, e.msg)
 }
 
 // you will likely have multiple ways errors get displayed

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 	"text/scanner"
 )
@@ -9,7 +11,7 @@ import (
 // Token is A struct contains lexeme or token info
 type Token struct {
 	tokentype TokenType
-	lexeme    string
+	lexeme    interface{}
 	literal   string
 	line      int
 	column    int
@@ -18,24 +20,46 @@ type Token struct {
 // Scanner is Lexeme anglizer
 type Scanner struct {
 	lox         *Lox
-	textScanner scanner.Scanner
+	textScanner *scanner.Scanner
 	tokens      []Token
 	source      string
 }
 
 func (t *Scanner) scanTokens() {
-	t.textScanner = scanner.Scanner{}
+	t.textScanner = &scanner.Scanner{}
+	// FIXME: custom Error do not working
+	t.textScanner.Error = func(s *scanner.Scanner, msg string) {
+		t.lox.hasError = true
+		t.lox.errorReporter.error(&TokenError{
+			msg:    msg,
+			line:   s.Pos().Line,
+			column: s.Pos().Column,
+		})
+	}
 	t.textScanner.Init(strings.NewReader(t.source))
+	// don't skip comments
+	// NOTE: consider Add support for comments liken `//` and '/* ... */'
+	// consider allowing them to nest
+	// t.textScanner.Mode ^= scanner.SkipComments
 	token := t.textScanner.Scan()
 	for token != scanner.EOF {
 		line, column := t.textScanner.Pos().Line, t.textScanner.Pos().Column
 		tokenText := t.textScanner.TokenText()
-		fmt.Println(line, column, tokenText, token)
+		// fmt.Println(line, column, tokenText, token)
 
 		switch token {
-		case scanner.Float:
-		case scanner.Int:
-			t.addToken(NUMBER, tokenText)
+		case scanner.Float, scanner.Int:
+			// turn all numeric thing to float64, like javascript
+			if num, err := strconv.ParseFloat(tokenText, 64); err != nil {
+				t.lox.hasError = true
+				t.lox.errorReporter.error(&TokenError{
+					msg:    "Unexpected number",
+					line:   line,
+					column: column,
+				})
+			} else {
+				t.addToken(NUMBER, num)
+			}
 			break
 		case scanner.String:
 			t.addToken(STRING, tokenText[1:len(tokenText)-1])
@@ -47,6 +71,7 @@ func (t *Scanner) scanTokens() {
 		token = t.textScanner.Scan()
 	}
 	fmt.Println(t.tokens)
+	fmt.Println(t.textScanner.ErrorCount)
 }
 
 func (t *Scanner) peek() string {
@@ -55,7 +80,7 @@ func (t *Scanner) peek() string {
 		return ""
 	}
 
-	// FIXME: printbale string vs normal string ???
+	// FIXME: printable string vs normal string ???
 	printableString := scanner.TokenString(t.textScanner.Peek())
 	return printableString[1 : len(printableString)-1]
 }
@@ -121,9 +146,9 @@ func (t *Scanner) identifiyToken(tokenText string) {
 		}
 		break
 	default:
-		// FIXME: 英文开头的只含有英文数字的字符才能算作有效的标识符
-		if true {
-			fmt.Println(tokenText)
+		// only begin with `_`, alpha and contains only alpha-numeric charactors
+		// we treat it as a identifier
+		if regexp.MustCompile(`^[_a-zA-Z]([_a-zA-Z0-9]*)$`).MatchString(tokenText) {
 			if tokenType, ok := keywords[tokenText]; ok {
 				t.addToken(tokenType, tokenText)
 			} else {
@@ -132,7 +157,7 @@ func (t *Scanner) identifiyToken(tokenText string) {
 		} else {
 			t.lox.hasError = true
 			t.lox.errorReporter.error(&TokenError{
-				msg:    "Unexpected token",
+				msg:    "Invalid or unexpected token: " + tokenText,
 				line:   t.textScanner.Pos().Line,
 				column: t.textScanner.Pos().Column,
 			})
@@ -140,7 +165,7 @@ func (t *Scanner) identifiyToken(tokenText string) {
 	}
 }
 
-func (t *Scanner) addToken(tokentype TokenType, value string) {
+func (t *Scanner) addToken(tokentype TokenType, value interface{}) {
 	t.tokens = append(t.tokens, Token{
 		tokentype: tokentype,
 		lexeme:    value,
