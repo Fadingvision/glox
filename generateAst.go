@@ -8,28 +8,28 @@ import (
 
 func init() {
 	generateAst("Expr", []string{
-		"BinaryExpr   : left Expr,operator TokenType,right Expr",
+		"BinaryExpr   : left Expr,operator Token,right Expr",
 		"GroupingExpr : expression Expr",
 		"LiteralExpr  : value interface{}",
-		"UnaryExpr    : operator TokenType,right Expr",
+		"UnaryExpr    : operator Token,right Expr",
 	})
 }
 
 const structTemplate = `
 package main
 
-type {{.Super}} struct {}
-
-func (s {{.Super}}) accept(visitor Visitor) interface{} {
-	return visitor.visit(s)
+type {{.Super}} interface {
+	accept(visitor Visitor) interface{}
 }
 
 {{ range $i, $v := .Sub }}
 type {{ $v.Name }} struct {
-	Expr
 	{{ range $i, $v2 := $v.Fields }}
 	{{ $v2 }}
 	{{ end }}
+}
+func (s {{$v.Name}}) accept(visitor Visitor) interface{} {
+	return visitor.visit{{ $v.Name }}(s)
 }
 {{ end }}
 `

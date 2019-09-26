@@ -71,11 +71,9 @@ func (t *Scanner) scanTokens() {
 		token = t.textScanner.Scan()
 	}
 	fmt.Println(t.tokens)
-	fmt.Println(t.textScanner.ErrorCount)
 }
 
 func (t *Scanner) peek() string {
-	fmt.Println("TokenType:", t.textScanner.Peek())
 	if t.textScanner.Peek() == scanner.EOF {
 		return ""
 	}
