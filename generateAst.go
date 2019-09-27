@@ -6,14 +6,14 @@ import (
 	"strings"
 )
 
-func init() {
-	generateAst("Expr", []string{
-		"BinaryExpr   : left Expr,operator Token,right Expr",
-		"GroupingExpr : expression Expr",
-		"LiteralExpr  : value interface{}",
-		"UnaryExpr    : operator Token,right Expr",
-	})
-}
+// func main() {
+// 	generateAst("Expr", []string{
+// 		"BinaryExpr   : left Expr,operator Token,right Expr",
+// 		"GroupingExpr : expression Expr",
+// 		"LiteralExpr  : value interface{}",
+// 		"UnaryExpr    : operator Token,right Expr",
+// 	})
+// }
 
 const structTemplate = `
 package main

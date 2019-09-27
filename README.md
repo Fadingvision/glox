@@ -111,7 +111,29 @@ operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
            | "+"  | "-"  | "*" | "/" ;
 ```
 
+__带有运算优先级的表达式CFG表示：__
+
+从上往下优先级依次递增：
+
+```js
+expression     → equality ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
+addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
+multiplication → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary
+               | primary ;
+primary        → NUMBER | STRING | "false" | "true" | "nil"
+               | "(" expression ")" ;
+```
+
+
+### 递归下降
+
+
 ### 抽象语法树(自动生成)
+
+将推导过程表示为图的树称为语法分析树。
  
 ### 访问者模式
 
