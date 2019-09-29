@@ -80,7 +80,8 @@ func (p *Parser) advance() Token {
 */
 
 // expression     → comma
-// comma    			→ equality ("," equality)*
+// comma    			→ condition ("," condition)*
+// condition    	→ equality ("?" condition ":" condition)?
 // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 // addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
@@ -97,10 +98,10 @@ func (p *Parser) expression() Expr {
 
 // comma rule has the lowest piority just like c-like languages
 func (p *Parser) comma() Expr {
-	expr := p.equality()
+	expr := p.condition()
 
 	for p.match(COMMA) {
-		next := p.equality()
+		next := p.condition()
 		if sequenceExpr, ok := expr.(SequenceExpr); ok {
 			sequenceExpr.exprs = append(sequenceExpr.exprs, next)
 			expr = sequenceExpr
@@ -108,6 +109,29 @@ func (p *Parser) comma() Expr {
 			expr = SequenceExpr{
 				[]Expr{expr, next},
 			}
+		}
+	}
+	return expr
+}
+
+// condition → equality ("?" condition ":" condition)?
+func (p *Parser) condition() Expr {
+	expr := p.equality()
+
+	if p.match(QUESTION) {
+		consequent := p.condition()
+		if p.match(COLON) {
+			alternate := p.condition()
+			expr = ConditionExpr{
+				expr,
+				consequent,
+				alternate,
+			}
+		} else {
+			p.lox.errorReporter.errorWithoutExit(ParseError{
+				p.peek(),
+				"Unexpected end of input",
+			})
 		}
 	}
 	return expr
@@ -193,6 +217,9 @@ func (p *Parser) primary() Expr {
 	if p.match(NUMBER, STRING) {
 		return LiteralExpr{p.previous().lexeme}
 	}
+	if p.match(IDENTIFIER, STRING) {
+		return LiteralExpr{p.previous().lexeme}
+	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()
 		if !p.match(RIGHT_PAREN) {
@@ -206,7 +233,7 @@ func (p *Parser) primary() Expr {
 
 	p.lox.errorReporter.error(ParseError{
 		p.peek(),
-		"Invalid or unexpected token",
+		"Invalid or unexpected token:" + p.peek().literal,
 	})
 
 	return nil

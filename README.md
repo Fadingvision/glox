@@ -113,11 +113,12 @@ operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
 
 __带有运算优先级的表达式CFG表示：__
 
-从上往下优先级依次递增：
+参考C语言运算优先级，从上往下优先级依次递增：
 
 ```js
 expression     → comma
-comma    			 → equality ("," equality)*
+comma    			 → condition ("," condition)*
+condition    	 → equality ("?" condition ":" condition)?
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
@@ -127,6 +128,10 @@ unary          → ( "!" | "-" ) unary
 primary        → NUMBER | STRING | "false" | "true" | "nil"
                | "(" expression ")" ;
 ```
+
+>下表列出 C 运算符的优先级和结合性。运算符从顶到底以降序列出。
+
+[C 运算符的优先级](https://en.cppreference.com/w/c/language/operator_precedence)
 
 
 ### 递归下降

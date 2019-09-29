@@ -29,6 +29,17 @@ func (v AstPrinter) visitLiteralExpr(expr LiteralExpr) interface{} {
 func (v AstPrinter) visitUnaryExpr(expr UnaryExpr) interface{} {
 	return expr.operator.literal + expr.right.accept(v).(string)
 }
+func (v AstPrinter) visitConditionExpr(expr ConditionExpr) interface{} {
+	var b strings.Builder
+	b.WriteString("( ")
+	b.WriteString(expr.test.accept(v).(string))
+	b.WriteString(" ? ")
+	b.WriteString(expr.consequent.accept(v).(string))
+	b.WriteString(" : ")
+	b.WriteString(expr.alternate.accept(v).(string))
+	b.WriteString(" )")
+	return b.String()
+}
 func (v AstPrinter) visitSequenceExpr(expr SequenceExpr) interface{} {
 	var b strings.Builder
 	for index, expression := range expr.exprs {

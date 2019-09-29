@@ -129,6 +129,12 @@ func (t *Scanner) identifiyToken(tokenText string) {
 	case "/":
 		t.addToken(SLASH, tokenText, tokenText)
 		break
+	case "?":
+		t.addToken(QUESTION, tokenText, tokenText)
+		break
+	case ":":
+		t.addToken(COLON, tokenText, tokenText)
+		break
 	case "!":
 		if ok, val := t.match("="); ok {
 			t.addToken(BANG_EQUAL, tokenText+val, tokenText+val)

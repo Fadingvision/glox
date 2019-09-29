@@ -16,6 +16,9 @@ const (
 	SLASH
 	STAR
 
+	QUESTION
+	COLON
+
 	// One or two character tokens.
 	BANG
 	BANG_EQUAL
