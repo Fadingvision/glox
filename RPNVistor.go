@@ -3,8 +3,15 @@ package main
 import (
 	"fmt"
 	"io"
-	"os"
 )
+
+/*
+	GO generics workarounds:
+
+	1. Find a well-fitting interface
+	2. Use multiple functions
+	3. Use the empty interface
+*/
 
 // Visitor is the interface all visitor should implement
 type Visitor interface {
@@ -35,14 +42,14 @@ func (v RPNVisitor) visitUnaryExpr(expr UnaryExpr) interface{} {
 	return "1 1 +"
 }
 
-func init() {
-	expression := BinaryExpr{
-		left: LiteralExpr{123},
-		operator: Token{
-			literal:   "+",
-			tokentype: PLUS,
-		},
-		right: LiteralExpr{456},
-	}
-	RPNVisitor{}.generate(expression, os.Stdout)
-}
+// func init() {
+// 	expression := BinaryExpr{
+// 		left: LiteralExpr{123},
+// 		operator: Token{
+// 			literal:   "+",
+// 			tokentype: PLUS,
+// 		},
+// 		right: LiteralExpr{456},
+// 	}
+// 	RPNVisitor{}.generate(expression, os.Stdout)
+// }

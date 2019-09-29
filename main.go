@@ -11,6 +11,7 @@ import (
 type Lox struct {
 	errorReporter *ErrorReporter
 	scanner       *Scanner
+	parser        *Parser
 	hasError      bool
 }
 
@@ -19,11 +20,14 @@ func main() {
 
 	lox := &Lox{
 		errorReporter: &ErrorReporter{},
+		parser:        &Parser{},
 		scanner: &Scanner{
 			tokens: []Token{},
 		},
 	}
 	lox.scanner.lox = lox
+	lox.errorReporter.lox = lox
+	lox.parser.lox = lox
 
 	if len(args) > 1 {
 		fmt.Println("GLOX]: Usage: glox [script]")
@@ -59,26 +63,25 @@ func (l *Lox) runREPL() {
 func (l *Lox) run(src string) {
 	l.scanner.source = src
 	l.scanner.scanTokens()
-}
-
-// TokenError implement the std err interface
-type TokenError struct {
-	code   string
-	msg    string
-	line   int
-	column int
-}
-
-func (e *TokenError) Error() string {
-	// TODO: more elgant error display
-	return fmt.Sprintf("[GLOX] Error: Line %d, Cloumn %d, %s", e.line, e.column, e.msg)
+	l.parser.tokens = l.scanner.tokens
+	expr := l.parser.parse()
+	// check if our expr works as we expect
+	AstPrinter{}.print(expr, os.Stdout)
 }
 
 // you will likely have multiple ways errors get displayed
 // on stderr, in an IDE’s error window, logged to a file, etc.
-type ErrorReporter struct{}
+type ErrorReporter struct {
+	lox *Lox
+}
 
 func (e *ErrorReporter) error(err error) {
+	e.lox.hasError = true
 	// by default, we just print on the interface and then exit with 1
 	log.Fatal(err)
+}
+
+func (e *ErrorReporter) errorWithoutExit(err error) {
+	e.lox.hasError = true
+	fmt.Println(err)
 }
