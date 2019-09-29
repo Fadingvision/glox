@@ -19,6 +19,7 @@ type Visitor interface {
 	visitGroupingExpr(expr GroupingExpr) interface{}
 	visitLiteralExpr(expr LiteralExpr) interface{}
 	visitUnaryExpr(expr UnaryExpr) interface{}
+	visitSequenceExpr(expr SequenceExpr) interface{}
 }
 
 // RPNVisitor is the Reverse Polish notation visitor
@@ -31,6 +32,9 @@ func (v RPNVisitor) generate(expr Expr, out io.Writer) {
 }
 func (v RPNVisitor) visitBinaryExpr(expr BinaryExpr) interface{} {
 	return expr.left.accept(v).(string) + " " + expr.right.accept(v).(string) + " " + expr.operator.literal
+}
+func (v RPNVisitor) visitSequenceExpr(expr SequenceExpr) interface{} {
+	return "1 1 +"
 }
 func (v RPNVisitor) visitGroupingExpr(expr GroupingExpr) interface{} {
 	return "1 1 +"

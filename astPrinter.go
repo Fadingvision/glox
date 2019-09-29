@@ -29,3 +29,13 @@ func (v AstPrinter) visitLiteralExpr(expr LiteralExpr) interface{} {
 func (v AstPrinter) visitUnaryExpr(expr UnaryExpr) interface{} {
 	return expr.operator.literal + expr.right.accept(v).(string)
 }
+func (v AstPrinter) visitSequenceExpr(expr SequenceExpr) interface{} {
+	var b strings.Builder
+	for index, expression := range expr.exprs {
+		b.WriteString(expression.accept(v).(string))
+		if index < len(expr.exprs)-1 {
+			b.WriteString(", ")
+		}
+	}
+	return b.String()
+}

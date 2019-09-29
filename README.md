@@ -116,7 +116,8 @@ __带有运算优先级的表达式CFG表示：__
 从上往下优先级依次递增：
 
 ```js
-expression     → equality ;
+expression     → comma
+comma    			 → equality ("," equality)*
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;

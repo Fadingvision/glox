@@ -79,7 +79,8 @@ func (p *Parser) advance() Token {
 	a reference to another rule -- we call that rule's method
 */
 
-// expression     → equality
+// expression     → comma
+// comma    			→ equality ("," equality)*
 // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 // addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
@@ -87,11 +88,29 @@ func (p *Parser) advance() Token {
 // unary          → ( "!" | "-" ) unary
 //                | primary ;
 // primary        → NUMBER | STRING | "false" | "true" | "nil"
-//                | "(" expression ")" ;
+//                | "(" expression ")" | "," expression ;
 
 // expression rule
 func (p *Parser) expression() Expr {
-	return p.equality()
+	return p.comma()
+}
+
+// comma rule has the lowest piority just like c-like languages
+func (p *Parser) comma() Expr {
+	expr := p.equality()
+
+	for p.match(COMMA) {
+		next := p.equality()
+		if sequenceExpr, ok := expr.(SequenceExpr); ok {
+			sequenceExpr.exprs = append(sequenceExpr.exprs, next)
+			expr = sequenceExpr
+		} else {
+			expr = SequenceExpr{
+				[]Expr{expr, next},
+			}
+		}
+	}
+	return expr
 }
 
 // equality rule
