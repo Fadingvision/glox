@@ -6,6 +6,16 @@ import (
 	"os"
 )
 
+// Visitor is the interface all visitor should implement
+type Visitor interface {
+	visitBinaryExpr(expr BinaryExpr) interface{}
+	visitGroupingExpr(expr GroupingExpr) interface{}
+	visitLiteralExpr(expr LiteralExpr) interface{}
+	visitUnaryExpr(expr UnaryExpr) interface{}
+}
+
+// RPNVisitor is the Reverse Polish notation visitor
+// which turns normal binary operation to RPN strings
 type RPNVisitor struct{}
 
 func (v RPNVisitor) generate(expr Expr, out io.Writer) {
