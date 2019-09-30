@@ -30,7 +30,7 @@ func (v Interpreter) checkNumberOperands(token Token, exprs ...interface{}) {
 		if !ok {
 			v.lox.errorReporter.error(RuntimeError{
 				token,
-				"Operands expect to be numbers",
+				"invalid operation, mismatched types",
 			})
 			return
 		}
@@ -40,10 +40,10 @@ func (v Interpreter) checkNumberOrStringOperands(token Token, exprs ...interface
 	for _, expr := range exprs {
 		_, ok := expr.(float64)
 		_, okString := expr.(string)
-		if !ok || !okString {
+		if !ok && !okString {
 			v.lox.errorReporter.error(RuntimeError{
 				token,
-				"Operands expect to be numbers or strings",
+				"invalid operation, mismatched types",
 			})
 			return
 		}
@@ -79,6 +79,12 @@ func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 		}
 		if leftOk && rightOk {
 			return leftString + rightString
+		}
+		if leftOk && rightFloatOk {
+			return leftString + fmt.Sprintf("%g", rightFloat)
+		}
+		if leftFloatOk && rightOk {
+			return fmt.Sprintf("%g", leftFloat) + rightString
 		}
 	// The ordering operators <, <=, >, and >= apply to operands that are ordered.
 	// which in our case is string and number;
