@@ -72,7 +72,7 @@ func (l *Lox) run(src string) {
 	AstPrinter{}.print(expr, os.Stdout)
 
 	// Evaluating Expressions
-	fmt.Println(Interpreter{}.evaluate(expr))
+	fmt.Println(Interpreter{l}.evaluate(expr))
 }
 
 // you will likely have multiple ways errors get displayed

@@ -1,5 +1,16 @@
 package main
 
+import "fmt"
+
+type RuntimeError struct {
+	token Token
+	msg   string
+}
+
+func (e RuntimeError) Error() string {
+	return fmt.Sprintf("[GLOX] RuntimeError: Line %d, Cloumn %d, %s", e.token.line, e.token.column, e.msg)
+}
+
 // in lox, we treat everything as True except `nil` and `false`
 func toBool(val interface{}) bool {
 	if val == nil || val == false {
@@ -8,7 +19,36 @@ func toBool(val interface{}) bool {
 	return true
 }
 
-type Interpreter struct{}
+// TODO: Add Error handling for runtime errors
+type Interpreter struct {
+	lox *Lox
+}
+
+func (v Interpreter) checkNumberOperands(token Token, exprs ...interface{}) {
+	for _, expr := range exprs {
+		_, ok := expr.(float64)
+		if !ok {
+			v.lox.errorReporter.error(RuntimeError{
+				token,
+				"Operands expect to be numbers",
+			})
+			return
+		}
+	}
+}
+func (v Interpreter) checkNumberOrStringOperands(token Token, exprs ...interface{}) {
+	for _, expr := range exprs {
+		_, ok := expr.(float64)
+		_, okString := expr.(string)
+		if !ok || !okString {
+			v.lox.errorReporter.error(RuntimeError{
+				token,
+				"Operands expect to be numbers or strings",
+			})
+			return
+		}
+	}
+}
 
 func (v Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(v)
@@ -24,12 +64,16 @@ func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 	// The four standard arithmetic operators (+, -, *, /) apply to numbers;
 	// + also applies to strings.
 	case SLASH:
-		return left.(float64) / right.(float64)
+		v.checkNumberOperands(expr.operator, left, right)
+		return leftFloat / rightFloat
 	case MINUS:
-		return left.(float64) - right.(float64)
+		v.checkNumberOperands(expr.operator, left, right)
+		return leftFloat - rightFloat
 	case STAR:
-		return left.(float64) * right.(float64)
+		v.checkNumberOperands(expr.operator, left, right)
+		return leftFloat * rightFloat
 	case PLUS:
+		v.checkNumberOrStringOperands(expr.operator, left, right)
 		if leftFloatOk && rightFloatOk {
 			return leftFloat + rightFloat
 		}
@@ -39,6 +83,7 @@ func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 	// The ordering operators <, <=, >, and >= apply to operands that are ordered.
 	// which in our case is string and number;
 	case GREATER:
+		v.checkNumberOrStringOperands(expr.operator, left, right)
 		if leftFloatOk && rightFloatOk {
 			return leftFloat > rightFloat
 		}
@@ -46,6 +91,7 @@ func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 			return leftString > rightString
 		}
 	case GREATER_EQUAL:
+		v.checkNumberOrStringOperands(expr.operator, left, right)
 		if leftFloatOk && rightFloatOk {
 			return leftFloat >= rightFloat
 		}
@@ -53,6 +99,7 @@ func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 			return leftString >= rightString
 		}
 	case LESS:
+		v.checkNumberOrStringOperands(expr.operator, left, right)
 		if leftFloatOk && rightFloatOk {
 			return leftFloat < rightFloat
 		}
@@ -60,6 +107,7 @@ func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 			return leftString < rightString
 		}
 	case LESS_EQUAL:
+		v.checkNumberOrStringOperands(expr.operator, left, right)
 		if leftFloatOk && rightFloatOk {
 			return leftFloat <= rightFloat
 		}
@@ -87,6 +135,7 @@ func (v Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {
 func (v Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
 	right := expr.right.accept(v)
 	if expr.operator.tokentype == MINUS {
+		v.checkNumberOperands(expr.operator, right)
 		return -right.(float64)
 	}
 	if expr.operator.tokentype == BANG {
