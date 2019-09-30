@@ -65,8 +65,14 @@ func (l *Lox) run(src string) {
 	l.scanner.scanTokens()
 	l.parser.tokens = l.scanner.tokens
 	expr := l.parser.parse()
+	if l.hasError {
+		return
+	}
 	// check if our expr works as we expect
 	AstPrinter{}.print(expr, os.Stdout)
+
+	// Evaluating Expressions
+	fmt.Println(Interpreter{}.evaluate(expr))
 }
 
 // you will likely have multiple ways errors get displayed

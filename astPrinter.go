@@ -14,7 +14,13 @@ func (v AstPrinter) print(expr Expr, out io.Writer) {
 	out.Write([]byte(str))
 }
 func (v AstPrinter) visitBinaryExpr(expr BinaryExpr) interface{} {
-	return expr.left.accept(v).(string) + " " + expr.operator.literal + " " + expr.right.accept(v).(string)
+	var b strings.Builder
+	b.WriteString("( ")
+	b.WriteString(expr.left.accept(v).(string))
+	b.WriteString(expr.operator.literal)
+	b.WriteString(expr.right.accept(v).(string))
+	b.WriteString(" )")
+	return b.String()
 }
 func (v AstPrinter) visitGroupingExpr(expr GroupingExpr) interface{} {
 	var b strings.Builder
