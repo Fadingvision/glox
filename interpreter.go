@@ -65,6 +65,7 @@ func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 	// + also applies to strings.
 	case SLASH:
 		v.checkNumberOperands(expr.operator, left, right)
+		// in sutiation like dividing a number by zero, we preserve it as go did, which results Infinity
 		return leftFloat / rightFloat
 	case MINUS:
 		v.checkNumberOperands(expr.operator, left, right)
