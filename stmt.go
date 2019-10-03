@@ -1,21 +1,21 @@
 package main
 
 type Stmt interface {
-	accept(visitor Visitor) interface{}
+	accept(visitor StmtVisitor)
 }
 
-type Expression struct {
+type ExpressionStmt struct {
 	expression Expr
 }
 
-func (s Expression) accept(visitor Visitor) interface{} {
-	return visitor.visitExpression(s)
+func (s ExpressionStmt) accept(visitor StmtVisitor) {
+	visitor.visitExpressionStmt(s)
 }
 
-type Print struct {
+type PrintStmt struct {
 	expression Expr
 }
 
-func (s Print) accept(visitor Visitor) interface{} {
-	return visitor.visitPrint(s)
+func (s PrintStmt) accept(visitor StmtVisitor) {
+	visitor.visitPrintStmt(s)
 }

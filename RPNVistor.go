@@ -5,24 +5,6 @@ import (
 	"io"
 )
 
-/*
-	GO generics workarounds:
-
-	1. Find a well-fitting interface
-	2. Use multiple functions
-	3. Use the empty interface
-*/
-
-// Visitor is the interface all visitor should implement
-type Visitor interface {
-	visitBinaryExpr(expr BinaryExpr) interface{}
-	visitGroupingExpr(expr GroupingExpr) interface{}
-	visitLiteralExpr(expr LiteralExpr) interface{}
-	visitUnaryExpr(expr UnaryExpr) interface{}
-	visitSequenceExpr(expr SequenceExpr) interface{}
-	visitConditionExpr(expr ConditionExpr) interface{}
-}
-
 // RPNVisitor is the Reverse Polish notation visitor
 // which turns normal binary operation to RPN strings
 type RPNVisitor struct{}

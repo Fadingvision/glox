@@ -61,18 +61,24 @@ func (l *Lox) runREPL() {
 }
 
 func (l *Lox) run(src string) {
+	l.scanner.tokens = l.parser.tokens[0:0] // empty slice
+	l.parser.reset()
+
 	l.scanner.source = src
 	l.scanner.scanTokens()
 	l.parser.tokens = l.scanner.tokens
-	expr := l.parser.parse()
+	stmts := l.parser.parse()
 	if l.hasError {
 		return
 	}
 	// check if our expr works as we expect
-	AstPrinter{}.print(expr, os.Stdout)
+	// AstPrinter{}.print(expr, os.Stdout)
 
-	// Evaluating Expressions
-	fmt.Println(Interpreter{l}.evaluate(expr))
+	// Evaluating statements
+	interpreter := Interpreter{l}
+	for _, stmt := range stmts {
+		interpreter.execute(stmt)
+	}
 }
 
 // you will likely have multiple ways errors get displayed

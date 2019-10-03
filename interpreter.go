@@ -19,7 +19,7 @@ func toBool(val interface{}) bool {
 	return true
 }
 
-// TODO: Add Error handling for runtime errors
+// Interpreter is for evaluating codes
 type Interpreter struct {
 	lox *Lox
 }
@@ -51,8 +51,21 @@ func (v Interpreter) checkNumberOrStringOperands(token Token, exprs ...interface
 	}
 }
 
+func (v Interpreter) execute(stmt Stmt) {
+	stmt.accept(v)
+}
+
 func (v Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(v)
+}
+
+func (v Interpreter) visitExpressionStmt(stmt ExpressionStmt) {
+	v.evaluate(stmt.expression)
+}
+
+func (v Interpreter) visitPrintStmt(stmt PrintStmt) {
+	value := v.evaluate(stmt.expression)
+	fmt.Println(value)
 }
 
 func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {

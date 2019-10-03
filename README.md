@@ -136,7 +136,9 @@ primary        → NUMBER | STRING | "false" | "true" | "nil"
 
 语句：
 
+
 ```js
+// 我们的程序就是无数个语句构成的。
 program   → statement* EOF ;
 
 statement → exprStmt

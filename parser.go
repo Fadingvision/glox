@@ -11,10 +11,6 @@ type Parser struct {
 	lox     *Lox
 }
 
-func (p *Parser) parse() Expr {
-	return p.expression()
-}
-
 // TokenError implement the std err interface
 type ParseError struct {
 	token Token
@@ -49,6 +45,17 @@ func (p *Parser) checkType(tokentype TokenType) bool {
 	return p.peek().tokentype == tokentype
 }
 
+func (p *Parser) consume(tokentype TokenType, msg string) {
+	if p.checkType(tokentype) {
+		p.advance()
+	} else {
+		p.lox.errorReporter.errorWithoutExit(ParseError{
+			p.peek(),
+			msg,
+		})
+	}
+}
+
 func (p *Parser) isAtEnd() bool {
 	return p.peek().tokentype == EOF
 }
@@ -71,12 +78,52 @@ func (p *Parser) advance() Token {
 	return p.previous()
 }
 
+func (p *Parser) parse() []Stmt {
+	statements := make([]Stmt, 0)
+	for !p.isAtEnd() {
+		statements = append(statements, p.statement())
+	}
+
+	return statements
+}
+
+func (p *Parser) reset() {
+	p.current = 0
+	p.tokens = nil
+}
+
 /*
 	Each method for parsing a grammar rule produces a syntax tree
 	for that rule and ruturns it to the caller.
 
 	When the body of the rule contains a nonterminal --
 	a reference to another rule -- we call that rule's method
+*/
+
+/* STATEMENTS */
+
+func (p *Parser) statement() Stmt {
+	if p.match(PRINT) {
+		return p.printStatement()
+	}
+
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() Stmt {
+	expr := p.expression()
+	p.consume(SEMICOLON, "Unexpected end of input, Expect ';' after value")
+	return PrintStmt{expr}
+}
+
+func (p *Parser) expressionStatement() Stmt {
+	expr := p.expression()
+	p.consume(SEMICOLON, "Unexpected end of input, Expect ';' after value")
+	return ExpressionStmt{expr}
+}
+
+/*
+	EXPRESSIONS
 */
 
 // expression     → comma

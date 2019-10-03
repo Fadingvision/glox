@@ -6,21 +6,21 @@ import (
 	"strings"
 )
 
-func main() {
-	// generateAst("Expr", []string{
-	// 	"BinaryExpr   : left Expr,operator Token,right Expr",
-	// 	"SequenceExpr   : exprs []Expr",
-	// 	"ConditionExpr   : test Expr,consequent Expr,alternate Expr",
-	// 	"GroupingExpr : expression Expr",
-	// 	"LiteralExpr  : value interface{}",
-	// 	"UnaryExpr    : operator Token,right Expr",
-	// }, "expr.go")
+// func main() {
+// 	// generateAst("Expr", []string{
+// 	// 	"BinaryExpr   : left Expr,operator Token,right Expr",
+// 	// 	"SequenceExpr   : exprs []Expr",
+// 	// 	"ConditionExpr   : test Expr,consequent Expr,alternate Expr",
+// 	// 	"GroupingExpr : expression Expr",
+// 	// 	"LiteralExpr  : value interface{}",
+// 	// 	"UnaryExpr    : operator Token,right Expr",
+// 	// }, "expr.go")
 
-	generateAst("Stmt", []string{
-		"Expression   : expression Expr",
-		"Print    : expression Expr",
-	}, "stmt.go")
-}
+// 	// generateAst("Stmt", []string{
+// 	// 	"Expression   : expression Expr",
+// 	// 	"Print    : expression Expr",
+// 	// }, "stmt.go")
+// }
 
 const structTemplate = `
 package main

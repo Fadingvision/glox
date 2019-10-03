@@ -1,1 +1,3 @@
-"123" + "asd"
+print "123";
+print 1 + 1;
+print true;
