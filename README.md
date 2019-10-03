@@ -116,8 +116,8 @@ __带有运算优先级的表达式CFG表示：__
 参考C语言运算优先级，从上往下优先级依次递增：
 
 ```js
-expression     → comma
-comma    			 → condition ("," condition)*
+expression     → sequence
+sequence       → condition ("," condition)*
 condition    	 → equality ("?" condition ":" condition)?
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
@@ -132,6 +132,19 @@ primary        → NUMBER | STRING | "false" | "true" | "nil"
 >下表列出 C 运算符的优先级和结合性。运算符从顶到底以降序列出。
 
 [C 运算符的优先级](https://en.cppreference.com/w/c/language/operator_precedence)
+
+
+语句：
+
+```js
+program   → statement* EOF ;
+
+statement → exprStmt
+          | printStmt ;
+
+exprStmt  → expression ";" ;
+printStmt → "print" expression ";" ;
+```
 
 
 ### 递归下降

@@ -36,6 +36,7 @@ func (v Interpreter) checkNumberOperands(token Token, exprs ...interface{}) {
 		}
 	}
 }
+
 func (v Interpreter) checkNumberOrStringOperands(token Token, exprs ...interface{}) {
 	for _, expr := range exprs {
 		_, ok := expr.(float64)
@@ -53,6 +54,7 @@ func (v Interpreter) checkNumberOrStringOperands(token Token, exprs ...interface
 func (v Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(v)
 }
+
 func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 	left := expr.left.accept(v)
 	right := expr.right.accept(v)
@@ -133,12 +135,15 @@ func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
 	}
 	return nil
 }
+
 func (v Interpreter) visitGroupingExpr(expr GroupingExpr) interface{} {
 	return expr.expression.accept(v)
 }
+
 func (v Interpreter) visitLiteralExpr(expr LiteralExpr) interface{} {
 	return expr.value
 }
+
 func (v Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
 	right := expr.right.accept(v)
 	if expr.operator.tokentype == MINUS {
@@ -150,14 +155,15 @@ func (v Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
 	}
 	return nil
 }
+
 func (v Interpreter) visitConditionExpr(expr ConditionExpr) interface{} {
 	test := expr.test.accept(v)
 	if toBool(test) {
 		return expr.consequent.accept(v)
-	} else {
-		return expr.alternate.accept(v)
 	}
+	return expr.alternate.accept(v)
 }
+
 func (v Interpreter) visitSequenceExpr(expr SequenceExpr) interface{} {
 	// Take the last one of expressions to be the sequence result
 	return expr.exprs[len(expr.exprs)-1].accept(v)

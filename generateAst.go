@@ -6,14 +6,21 @@ import (
 	"strings"
 )
 
-// func main() {
-// 	generateAst("Expr", []string{
-// 		"BinaryExpr   : left Expr,operator Token,right Expr",
-// 		"GroupingExpr : expression Expr",
-// 		"LiteralExpr  : value interface{}",
-// 		"UnaryExpr    : operator Token,right Expr",
-// 	})
-// }
+func main() {
+	// generateAst("Expr", []string{
+	// 	"BinaryExpr   : left Expr,operator Token,right Expr",
+	// 	"SequenceExpr   : exprs []Expr",
+	// 	"ConditionExpr   : test Expr,consequent Expr,alternate Expr",
+	// 	"GroupingExpr : expression Expr",
+	// 	"LiteralExpr  : value interface{}",
+	// 	"UnaryExpr    : operator Token,right Expr",
+	// }, "expr.go")
+
+	generateAst("Stmt", []string{
+		"Expression   : expression Expr",
+		"Print    : expression Expr",
+	}, "stmt.go")
+}
 
 const structTemplate = `
 package main
@@ -39,7 +46,7 @@ type class struct {
 	Fields []string
 }
 
-func generateAst(super string, sub []string) {
+func generateAst(super string, sub []string, filename string) {
 	var subClass []class
 	for _, item := range sub {
 		className := strings.Trim(strings.Split(item, ":")[0], " ")
@@ -50,7 +57,7 @@ func generateAst(super string, sub []string) {
 		})
 	}
 	t, err := template.New("struct").Parse(structTemplate)
-	newFile, err := os.Create("ast.go")
+	newFile, err := os.Create(filename)
 	if err == nil {
 		t.Execute(newFile, struct {
 			Super string
