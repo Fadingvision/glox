@@ -73,7 +73,7 @@ func (v Interpreter) visitBlockStmt(stmt BlockStmt) {
 	/*
 		This is how we fully support local scope.
 		When block statement is called, store the parent scope,
-		make a new env, so the block will executed in this new one.
+		build a new env, so the block will executed in this new one.
 		After these, restore the previous env.
 	*/
 	parent := v.env
@@ -97,7 +97,8 @@ func (v Interpreter) visitVarStmt(stmt VarStmt) {
 	if stmt.init != nil {
 		value = v.evaluate(stmt.init)
 	}
-
+	// NOTE: Instead of implicitly initializing variables to nil,
+	// we also can make it a runtime error to access a variable that has not been initialized or assigned to
 	v.env.set(stmt.name.literal, value)
 }
 

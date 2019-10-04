@@ -31,3 +31,14 @@ var c = "global c";
 print a;
 print b;
 print c;
+
+/* 
+  What did you expect it to do? Is it what you think it should do? 
+  What does analogous code in other languages you are familiar with do? 
+  What do you think users will expect this to do?
+*/
+var a = 1;
+{
+  var a = a + 2;
+  print a;
+}
