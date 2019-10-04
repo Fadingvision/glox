@@ -48,12 +48,13 @@ func (p *Parser) checkType(tokentype TokenType) bool {
 func (p *Parser) consume(tokentype TokenType, msg string) {
 	if p.checkType(tokentype) {
 		p.advance()
-	} else {
-		p.lox.errorReporter.errorWithoutExit(ParseError{
-			p.peek(),
-			msg,
-		})
+		return
 	}
+
+	p.lox.errorReporter.errorWithoutExit(ParseError{
+		p.peek(),
+		msg,
+	})
 }
 
 func (p *Parser) isAtEnd() bool {
@@ -73,7 +74,7 @@ func (p *Parser) peek() Token {
 // advance comsume A token and returns it
 func (p *Parser) advance() Token {
 	if !p.isAtEnd() {
-		p.current += 1
+		p.current++
 	}
 	return p.previous()
 }
@@ -81,7 +82,7 @@ func (p *Parser) advance() Token {
 func (p *Parser) parse() []Stmt {
 	statements := make([]Stmt, 0)
 	for !p.isAtEnd() {
-		statements = append(statements, p.statement())
+		statements = append(statements, p.declaration())
 	}
 
 	return statements
@@ -93,18 +94,43 @@ func (p *Parser) reset() {
 }
 
 /*
-	Each method for parsing a grammar rule produces a syntax tree
+	Form top to down, each method for parsing a grammar rule produces a syntax tree
 	for that rule and ruturns it to the caller.
 
 	When the body of the rule contains a nonterminal --
-	a reference to another rule -- we call that rule's method
+	a reference to another rule -- we call that rule's method,
+
+	A rule may refer to itself, so this's why it's called recursive descent parser
 */
 
 /* STATEMENTS */
 
+func (p *Parser) declaration() Stmt {
+	if p.match(VAR) {
+		return p.varDeclaration()
+	}
+
+	return p.statement()
+}
+
+func (p *Parser) varDeclaration() Stmt {
+	p.consume(IDENTIFIER, "Unexpected token")
+	name := p.previous()
+	var init Expr
+	if p.match(EQUAL) {
+		init = p.expression()
+	}
+	p.consume(SEMICOLON, "Unexpected end of input, Expect ';' after value")
+	return VarStmt{name, init}
+}
+
 func (p *Parser) statement() Stmt {
 	if p.match(PRINT) {
 		return p.printStatement()
+	}
+
+	if p.match(LEFT_BRACE) {
+		return p.blockStatement()
 	}
 
 	return p.expressionStatement()
@@ -122,29 +148,44 @@ func (p *Parser) expressionStatement() Stmt {
 	return ExpressionStmt{expr}
 }
 
+func (p *Parser) blockStatement() Stmt {
+	stmts := make([]Stmt, 0)
+	for !p.checkType(RIGHT_BRACE) && !p.isAtEnd() {
+		stmts = append(stmts, p.declaration())
+	}
+	p.consume(RIGHT_BRACE, "Unexpected end of input, Expect '}' after block")
+	return BlockStmt{stmts}
+}
+
 /*
 	EXPRESSIONS
 */
 
-// expression     → comma
-// comma    			→ condition ("," condition)*
-// condition    	→ equality ("?" condition ":" condition)?
-// equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-// comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
-// addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
-// multiplication → unary ( ( "/" | "*" ) unary )* ;
-// unary          → ( "!" | "-" ) unary
-//                | primary ;
-// primary        → NUMBER | STRING | "false" | "true" | "nil"
-//                | "(" expression ")" | "," expression ;
-
 // expression rule
 func (p *Parser) expression() Expr {
-	return p.comma()
+	return p.assignment()
 }
 
-// comma rule has the lowest piority just like c-like languages
-func (p *Parser) comma() Expr {
+// sequence rule has the lowest piority just like c-like languages
+func (p *Parser) assignment() Expr {
+	expr := p.sequence()
+
+	for p.match(EQUAL) {
+		equal := p.previous()
+		value := p.assignment()
+		if expr, ok := expr.(IdentifierExpr); ok {
+			name := expr.name
+			return AssignExpr{name, value}
+		}
+		p.lox.errorReporter.errorWithoutExit(RuntimeError{
+			equal,
+			"Invalid left-hand assignment target.",
+		})
+	}
+	return expr
+}
+
+func (p *Parser) sequence() Expr {
 	expr := p.condition()
 
 	for p.match(COMMA) {
@@ -265,7 +306,7 @@ func (p *Parser) primary() Expr {
 		return LiteralExpr{p.previous().lexeme}
 	}
 	if p.match(IDENTIFIER, STRING) {
-		return LiteralExpr{p.previous().lexeme}
+		return IdentifierExpr{p.previous()}
 	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()

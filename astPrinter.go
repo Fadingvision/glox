@@ -62,3 +62,10 @@ func (v AstPrinter) visitSequenceExpr(expr SequenceExpr) interface{} {
 	}
 	return b.String()
 }
+
+func (v AstPrinter) visitAssignExpr(expr AssignExpr) interface{} {
+	return "1 1 +"
+}
+func (v AstPrinter) visitIdentifierExpr(expr IdentifierExpr) interface{} {
+	return "1 1 +"
+}

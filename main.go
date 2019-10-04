@@ -67,6 +67,7 @@ func (l *Lox) run(src string) {
 	l.scanner.source = src
 	l.scanner.scanTokens()
 	l.parser.tokens = l.scanner.tokens
+	fmt.Println("tokens: ", l.parser.tokens)
 	stmts := l.parser.parse()
 	if l.hasError {
 		return
@@ -75,7 +76,13 @@ func (l *Lox) run(src string) {
 	// AstPrinter{}.print(expr, os.Stdout)
 
 	// Evaluating statements
-	interpreter := Interpreter{l}
+	interpreter := Interpreter{
+		l,
+		env{
+			values: make(map[string]interface{}, 0),
+			parent: nil,
+		},
+	}
 	for _, stmt := range stmts {
 		interpreter.execute(stmt)
 	}

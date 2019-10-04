@@ -4,6 +4,16 @@ type Expr interface {
 	accept(visitor Visitor) interface{}
 }
 
+type AssignExpr struct {
+	left Token
+
+	right Expr
+}
+
+func (s AssignExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitAssignExpr(s)
+}
+
 type BinaryExpr struct {
 	left Expr
 
@@ -25,9 +35,11 @@ func (s SequenceExpr) accept(visitor Visitor) interface{} {
 }
 
 type ConditionExpr struct {
-	test       Expr
+	test Expr
+
 	consequent Expr
-	alternate  Expr
+
+	alternate Expr
 }
 
 func (s ConditionExpr) accept(visitor Visitor) interface{} {
@@ -58,4 +70,12 @@ type UnaryExpr struct {
 
 func (s UnaryExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitUnaryExpr(s)
+}
+
+type IdentifierExpr struct {
+	name Token
+}
+
+func (s IdentifierExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitIdentifierExpr(s)
 }

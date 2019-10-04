@@ -81,7 +81,6 @@ func (t *Scanner) scanTokens() {
 		}
 	}
 	t.addToken(EOF, nil, "")
-	fmt.Println(t.tokens)
 }
 
 func (t *Scanner) peek() string {

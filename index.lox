@@ -1,3 +1,33 @@
+// expression statements
+1 + 1;
+
+// print statements
 print "123";
 print 1 + 1;
 print true;
+
+// var statements
+var a = "global a";
+var b = "global b";
+var c = "global c";
+
+// block statements
+{
+  var a = "outer a";
+  var b = "outer b";
+  {
+    var a = "inner a";
+    a = "inner aa";
+    print a;
+    print b;
+    print c;
+  }
+  a = "outer aa";
+  c = "global cc";
+  print a;
+  print b;
+  print c;
+}
+print a;
+print b;
+print c;

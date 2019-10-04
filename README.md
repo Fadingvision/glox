@@ -116,7 +116,9 @@ __带有运算优先级的表达式CFG表示：__
 参考C语言运算优先级，从上往下优先级依次递增：
 
 ```js
-expression     → sequence
+expression → assignment ;
+assignment → IDENTIFIER "=" assignment
+           | sequence ;
 sequence       → condition ("," condition)*
 condition    	 → equality ("?" condition ":" condition)?
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -125,7 +127,7 @@ addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
-primary        → NUMBER | STRING | "false" | "true" | "nil"
+primary        → NUMBER | IDENTIFIER | STRING | "false" | "true" | "nil"
                | "(" expression ")" ;
 ```
 
@@ -139,13 +141,20 @@ primary        → NUMBER | STRING | "false" | "true" | "nil"
 
 ```js
 // 我们的程序就是无数个语句构成的。
-program   → statement* EOF ;
+program     → declaration* EOF ;
 
-statement → exprStmt
-          | printStmt ;
+declaration → varDecl
+            | statement ;
+
+statement   → exprStmt
+            | printStmt
+            | blockStmt ;
+
+varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 exprStmt  → expression ";" ;
 printStmt → "print" expression ";" ;
+block     → "{" declaration* "}" ;
 ```
 
 

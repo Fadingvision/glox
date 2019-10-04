@@ -22,6 +22,7 @@ func toBool(val interface{}) bool {
 // Interpreter is for evaluating codes
 type Interpreter struct {
 	lox *Lox
+	env env
 }
 
 func (v Interpreter) checkNumberOperands(token Token, exprs ...interface{}) {
@@ -66,6 +67,51 @@ func (v Interpreter) visitExpressionStmt(stmt ExpressionStmt) {
 func (v Interpreter) visitPrintStmt(stmt PrintStmt) {
 	value := v.evaluate(stmt.expression)
 	fmt.Println(value)
+}
+
+func (v Interpreter) visitBlockStmt(stmt BlockStmt) {
+	/*
+		This is how we fully support local scope.
+		When block statement is called, store the parent scope,
+		make a new env, so the block will executed in this new one.
+		After these, restore the previous env.
+	*/
+	parent := v.env
+	blockEnv := env{
+		values: make(map[string]interface{}, 0),
+		parent: &parent,
+	}
+	v.env = blockEnv
+	defer func() {
+		v.env = parent
+	}()
+
+	for _, statement := range stmt.statements {
+		v.execute(statement)
+	}
+	fmt.Println(v.env.values)
+}
+
+func (v Interpreter) visitVarStmt(stmt VarStmt) {
+	var value interface{}
+	if stmt.init != nil {
+		value = v.evaluate(stmt.init)
+	}
+
+	v.env.set(stmt.name.literal, value)
+}
+
+func (v Interpreter) visitAssignExpr(stmt AssignExpr) interface{} {
+	var value interface{}
+	if stmt.right != nil {
+		value = v.evaluate(stmt.right)
+	}
+
+	_, err := v.env.assign(stmt.left, value)
+	if err != nil {
+		v.lox.errorReporter.errorWithoutExit(err)
+	}
+	return value
 }
 
 func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {
@@ -167,6 +213,14 @@ func (v Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
 		return !toBool(right)
 	}
 	return nil
+}
+
+func (v Interpreter) visitIdentifierExpr(expr IdentifierExpr) interface{} {
+	value, err := v.env.get(expr.name)
+	if err != nil {
+		v.lox.errorReporter.errorWithoutExit(err)
+	}
+	return value
 }
 
 func (v Interpreter) visitConditionExpr(expr ConditionExpr) interface{} {

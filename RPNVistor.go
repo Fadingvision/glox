@@ -25,6 +25,12 @@ func (v RPNVisitor) visitConditionExpr(expr ConditionExpr) interface{} {
 func (v RPNVisitor) visitGroupingExpr(expr GroupingExpr) interface{} {
 	return "1 1 +"
 }
+func (v RPNVisitor) visitAssignExpr(expr AssignExpr) interface{} {
+	return "1 1 +"
+}
+func (v RPNVisitor) visitIdentifierExpr(expr IdentifierExpr) interface{} {
+	return "1 1 +"
+}
 func (v RPNVisitor) visitLiteralExpr(expr LiteralExpr) interface{} {
 	return fmt.Sprint(expr.value)
 }
