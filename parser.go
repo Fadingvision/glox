@@ -163,12 +163,29 @@ func (p *Parser) blockStatement() Stmt {
 
 // expression rule
 func (p *Parser) expression() Expr {
-	return p.assignment()
+	return p.sequence()
+}
+
+func (p *Parser) sequence() Expr {
+	expr := p.assignment()
+
+	for p.match(COMMA) {
+		next := p.assignment()
+		if sequenceExpr, ok := expr.(SequenceExpr); ok {
+			sequenceExpr.exprs = append(sequenceExpr.exprs, next)
+			expr = sequenceExpr
+		} else {
+			expr = SequenceExpr{
+				[]Expr{expr, next},
+			}
+		}
+	}
+	return expr
 }
 
 // sequence rule has the lowest piority just like c-like languages
 func (p *Parser) assignment() Expr {
-	expr := p.sequence()
+	expr := p.condition()
 
 	for p.match(EQUAL) {
 		equal := p.previous()
@@ -181,23 +198,6 @@ func (p *Parser) assignment() Expr {
 			equal,
 			"Invalid left-hand assignment target.",
 		})
-	}
-	return expr
-}
-
-func (p *Parser) sequence() Expr {
-	expr := p.condition()
-
-	for p.match(COMMA) {
-		next := p.condition()
-		if sequenceExpr, ok := expr.(SequenceExpr); ok {
-			sequenceExpr.exprs = append(sequenceExpr.exprs, next)
-			expr = sequenceExpr
-		} else {
-			expr = SequenceExpr{
-				[]Expr{expr, next},
-			}
-		}
 	}
 	return expr
 }
