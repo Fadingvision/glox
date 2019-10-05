@@ -116,11 +116,16 @@ __带有运算优先级的表达式CFG表示：__
 参考C语言运算优先级，从上往下优先级依次递增：
 
 ```js
-expression → assignment ;
+expression → sequence ;
+
+sequence       → assignment ("," assignment)*
 assignment → IDENTIFIER "=" assignment
-           | sequence ;
-sequence       → condition ("," condition)*
-condition    	 → equality ("?" condition ":" condition)?
+           | condition ;
+condition    	 → logic_or ("?" condition ":" condition)?
+
+logic_or   → logic_and ( "or" logic_and )* ;
+logic_and  → equality ( "and" equality )* ;
+
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
@@ -148,13 +153,15 @@ declaration → varDecl
 
 statement   → exprStmt
             | printStmt
+            | ifStmt
             | blockStmt ;
 
 varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 exprStmt  → expression ";" ;
 printStmt → "print" expression ";" ;
-block     → "{" declaration* "}" ;
+blockStmt → "{" declaration* "}" ;
+ifStmt    → "if" "(" expression ")" statement ( "else" statement )? ;
 ```
 
 
