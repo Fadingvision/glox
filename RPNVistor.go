@@ -37,6 +37,9 @@ func (v RPNVisitor) visitLiteralExpr(expr LiteralExpr) interface{} {
 func (v RPNVisitor) visitUnaryExpr(expr UnaryExpr) interface{} {
 	return "1 1 +"
 }
+func (v RPNVisitor) visitLogicalExpr(expr LogicalExpr) interface{} {
+	return "1 1 +"
+}
 
 // func init() {
 // 	expression := BinaryExpr{

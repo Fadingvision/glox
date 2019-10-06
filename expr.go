@@ -26,6 +26,18 @@ func (s BinaryExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitBinaryExpr(s)
 }
 
+type LogicalExpr struct {
+	left Expr
+
+	operator Token
+
+	right Expr
+}
+
+func (s LogicalExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitLogicalExpr(s)
+}
+
 type SequenceExpr struct {
 	exprs []Expr
 }

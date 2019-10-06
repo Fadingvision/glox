@@ -10,6 +10,7 @@ import (
 // 	generateAst("Expr", []string{
 // 		"AssignExpr   : left Token,right Expr",
 // 		"BinaryExpr   : left Expr,operator Token,right Expr",
+// 		"LogicalExpr   : left Expr,operator Token,right Expr",
 // 		"SequenceExpr   : exprs []Expr",
 // 		"ConditionExpr   : test Expr,consequent Expr,alternate Expr",
 // 		"GroupingExpr : expression Expr",
@@ -23,6 +24,8 @@ import (
 // 		"PrintStmt    : expression Expr",
 // 		"BlockStmt    : statements []Stmt",
 // 		"VarStmt    : name Token, init Expr",
+// 		"IfStmt    : condition Expr, consequent Stmt, alternate Stmt",
+// 		"WhileStmt    : condition Expr, body Stmt",
 // 	}, "stmt.go", structTemplate2)
 // }
 

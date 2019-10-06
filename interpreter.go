@@ -64,6 +64,20 @@ func (v Interpreter) visitExpressionStmt(stmt ExpressionStmt) {
 	v.evaluate(stmt.expression)
 }
 
+func (v Interpreter) visitIfStmt(stmt IfStmt) {
+	if toBool(v.evaluate(stmt.condition)) {
+		v.execute(stmt.consequent)
+	} else if stmt.alternate != nil {
+		v.execute(stmt.alternate)
+	}
+}
+
+func (v Interpreter) visitWhileStmt(stmt WhileStmt) {
+	for toBool(v.evaluate(stmt.condition)) {
+		v.execute(stmt.body)
+	}
+}
+
 func (v Interpreter) visitPrintStmt(stmt PrintStmt) {
 	value := v.evaluate(stmt.expression)
 	fmt.Println(value)
@@ -89,7 +103,6 @@ func (v Interpreter) visitBlockStmt(stmt BlockStmt) {
 	for _, statement := range stmt.statements {
 		v.execute(statement)
 	}
-	fmt.Println(v.env.values)
 }
 
 func (v Interpreter) visitVarStmt(stmt VarStmt) {
@@ -113,6 +126,21 @@ func (v Interpreter) visitAssignExpr(stmt AssignExpr) interface{} {
 		v.lox.errorReporter.errorWithoutExit(err)
 	}
 	return value
+}
+func (v Interpreter) visitLogicalExpr(expr LogicalExpr) interface{} {
+	// logic operator is short-circuit
+	left := v.evaluate(expr.left)
+	if expr.operator.tokentype == OR {
+		if toBool(left) {
+			return left
+		}
+	} else if expr.operator.tokentype == AND {
+		if !toBool(left) {
+			return left
+		}
+	}
+
+	return v.evaluate(expr.right)
 }
 
 func (v Interpreter) visitBinaryExpr(expr BinaryExpr) interface{} {

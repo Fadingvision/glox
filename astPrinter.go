@@ -69,3 +69,6 @@ func (v AstPrinter) visitAssignExpr(expr AssignExpr) interface{} {
 func (v AstPrinter) visitIdentifierExpr(expr IdentifierExpr) interface{} {
 	return "1 1 +"
 }
+func (v AstPrinter) visitLogicalExpr(expr LogicalExpr) interface{} {
+	return "1 1 +"
+}

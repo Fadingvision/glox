@@ -132,6 +132,15 @@ func (p *Parser) statement() Stmt {
 	if p.match(LEFT_BRACE) {
 		return p.blockStatement()
 	}
+	if p.match(IF) {
+		return p.ifstatement()
+	}
+	if p.match(WHILE) {
+		return p.whileStatement()
+	}
+	if p.match(FOR) {
+		return p.forStatement()
+	}
 
 	return p.expressionStatement()
 }
@@ -140,6 +149,94 @@ func (p *Parser) printStatement() Stmt {
 	expr := p.expression()
 	p.consume(SEMICOLON, "Unexpected end of input, Expect ';' after value")
 	return PrintStmt{expr}
+}
+
+func (p *Parser) ifstatement() Stmt {
+	p.consume(LEFT_PAREN, "Unexpected token")
+	condition := p.expression()
+	p.consume(RIGHT_PAREN, "Unexpected token")
+
+	consequent := p.statement()
+	var alternate Stmt
+
+	if p.match(ELSE) {
+		alternate = p.statement()
+	}
+
+	return IfStmt{condition, consequent, alternate}
+}
+
+func (p *Parser) whileStatement() Stmt {
+	p.consume(LEFT_PAREN, "Unexpected token")
+	condition := p.expression()
+	p.consume(RIGHT_PAREN, "Unexpected token")
+	body := p.statement()
+	return WhileStmt{condition, body}
+}
+
+/*
+	the for loop can be transformed like this
+	{
+		var i = 0; 				// init
+		while (i < 10) { 	// condition
+			print i; 				// original body
+			i = i + 1; 			// increment
+		}
+	}
+*/
+func (p *Parser) forStatement() Stmt {
+	// forStmt is syntactic sugar for while loop
+	p.consume(LEFT_PAREN, "Expected ')' before for clauses")
+
+	var init Stmt
+	var condition Expr
+	var increment Expr
+	var body Stmt
+
+	if p.match(SEMICOLON) {
+		init = nil
+	} else if p.match(VAR) {
+		init = p.varDeclaration()
+	} else {
+		init = p.expressionStatement()
+	}
+
+	if !p.checkType(SEMICOLON) {
+		condition = p.expression()
+	}
+
+	// if condition is omited, we treat it as 'true'
+	if condition == nil {
+		condition = LiteralExpr{true}
+	}
+
+	p.consume(SEMICOLON, "Expected ';' after loop condition")
+
+	if !p.checkType(RIGHT_PAREN) {
+		increment = p.expression()
+	}
+	p.consume(RIGHT_PAREN, "Expected ')' after for clauses")
+
+	body = p.statement()
+
+	if increment != nil {
+		// add increment expr to the end of for original boby
+		// which will be executed after original body is executed
+		body = BlockStmt{
+			[]Stmt{body, ExpressionStmt{increment}},
+		}
+	}
+
+	body = WhileStmt{condition, body}
+
+	if init != nil {
+		// add initializer stmt to the beginning of the while boby
+		body = BlockStmt{
+			[]Stmt{init, body},
+		}
+	}
+
+	return body
 }
 
 func (p *Parser) expressionStatement() Stmt {
@@ -204,7 +301,7 @@ func (p *Parser) assignment() Expr {
 
 // condition → equality ("?" condition ":" condition)?
 func (p *Parser) condition() Expr {
-	expr := p.equality()
+	expr := p.loginOr()
 
 	if p.match(QUESTION) {
 		consequent := p.condition()
@@ -222,6 +319,31 @@ func (p *Parser) condition() Expr {
 			})
 		}
 	}
+	return expr
+}
+
+// logic_or   → logic_and ( "or" logic_and )* ;
+func (p *Parser) loginOr() Expr {
+	expr := p.loginAnd()
+
+	for p.match(OR) {
+		token := p.previous()
+		right := p.loginAnd()
+		expr = LogicalExpr{expr, token, right}
+	}
+	return expr
+}
+
+// logic_and  → equality ( "and" equality )* ;
+func (p *Parser) loginAnd() Expr {
+	expr := p.equality()
+
+	for p.match(AND) {
+		token := p.previous()
+		right := p.equality()
+		expr = LogicalExpr{expr, token, right}
+	}
+
 	return expr
 }
 

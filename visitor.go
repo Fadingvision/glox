@@ -11,6 +11,7 @@ package main
 // Visitor is the interface expression visitor should implement
 type Visitor interface {
 	visitBinaryExpr(expr BinaryExpr) interface{}
+	visitLogicalExpr(expr LogicalExpr) interface{}
 	visitGroupingExpr(expr GroupingExpr) interface{}
 	visitLiteralExpr(expr LiteralExpr) interface{}
 	visitUnaryExpr(expr UnaryExpr) interface{}
@@ -28,4 +29,6 @@ type StmtVisitor interface {
 	visitPrintStmt(stmt PrintStmt)
 	visitVarStmt(stmt VarStmt)
 	visitBlockStmt(stmt BlockStmt)
+	visitIfStmt(stmt IfStmt)
+	visitWhileStmt(stmt WhileStmt)
 }
