@@ -56,6 +56,12 @@ func (v Interpreter) execute(stmt Stmt) {
 	stmt.accept(v)
 }
 
+func (v Interpreter) executeBlock(stmts []Stmt) {
+	for _, stmt := range stmts {
+		v.execute(stmt)
+	}
+}
+
 func (v Interpreter) evaluate(expr Expr) interface{} {
 	return expr.accept(v)
 }

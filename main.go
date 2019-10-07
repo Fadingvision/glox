@@ -83,9 +83,7 @@ func (l *Lox) run(src string) {
 			parent: nil,
 		},
 	}
-	for _, stmt := range stmts {
-		interpreter.execute(stmt)
-	}
+	interpreter.executeBlock(stmts)
 }
 
 // you will likely have multiple ways errors get displayed

@@ -131,7 +131,8 @@ comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
-               | primary ;
+               | call ;
+call           → primary ( "(" sequence? ")" )* ;
 primary        → NUMBER | IDENTIFIER | STRING | "false" | "true" | "nil"
                | "(" expression ")" ;
 ```
@@ -149,20 +150,29 @@ primary        → NUMBER | IDENTIFIER | STRING | "false" | "true" | "nil"
 program     → declaration* EOF ;
 
 declaration → varDecl
+            | funDecl
             | statement ;
 
 statement   → exprStmt
             | printStmt
             | ifStmt
             | whileStmt
+            | returnStmt
             | forStmt
             | blockStmt ;
 
 varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
 
+funDecl  → "fun" function ;
+function → IDENTIFIER "(" parameters? ")" block ;
+parameters → IDENTIFIER ( "," IDENTIFIER )* ;
+
 exprStmt  → expression ";" ;
 printStmt → "print" expression ";" ;
 blockStmt → "{" declaration* "}" ;
+
+returnStmt → "return" expression? ";" ;
+
 ifStmt    → "if" "(" expression ")" statement ( "else" statement )? ;
 whileStmt → "while" "(" expression ")" statement ;
 forStmt   → "for" "(" ( varDecl | exprStmt | ";" )

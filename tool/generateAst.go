@@ -6,30 +6,32 @@ import (
 	"text/template"
 )
 
-// func main() {
-// 	generateAst("Expr", []string{
-// 		"AssignExpr   : left Token,right Expr",
-// 		"BinaryExpr   : left Expr,operator Token,right Expr",
-// 		"LogicalExpr   : left Expr,operator Token,right Expr",
-// 		"SequenceExpr   : exprs []Expr",
-// 		"ConditionExpr   : test Expr,consequent Expr,alternate Expr",
-// 		"GroupingExpr : expression Expr",
-// 		"LiteralExpr  : value interface{}",
-// 		"UnaryExpr    : operator Token,right Expr",
-// 		"IdentifierExpr    : name Token",
-// 	}, "expr.go", structTemplate)
+func main() {
+	generateAst("Expr", []string{
+		"AssignExpr   : left Token,right Expr",
+		"BinaryExpr   : left Expr,operator Token,right Expr",
+		"LogicalExpr   : left Expr,operator Token,right Expr",
+		"SequenceExpr   : exprs []Expr",
+		"ConditionExpr   : test Expr,consequent Expr,alternate Expr",
+		"GroupingExpr : expression Expr",
+		"LiteralExpr  : value interface{}",
+		"UnaryExpr    : operator Token,right Expr",
+		"CallExpr    : callee Expr,paren Token,arguments SequenceExpr",
+		"IdentifierExpr    : name Token",
+	}, "../expr.go", exprTemplate)
 
-// 	generateAst("Stmt", []string{
-// 		"ExpressionStmt   : expression Expr",
-// 		"PrintStmt    : expression Expr",
-// 		"BlockStmt    : statements []Stmt",
-// 		"VarStmt    : name Token, init Expr",
-// 		"IfStmt    : condition Expr, consequent Stmt, alternate Stmt",
-// 		"WhileStmt    : condition Expr, body Stmt",
-// 	}, "stmt.go", structTemplate2)
-// }
+	generateAst("Stmt", []string{
+		"ExpressionStmt   : expression Expr",
+		"PrintStmt    : expression Expr",
+		"BlockStmt    : statements []Stmt",
+		"VarStmt    : name Token, init Expr",
+		"FunStmt    : name Token, params []Token, body BlockStmt",
+		"IfStmt    : condition Expr, consequent Stmt, alternate Stmt",
+		"WhileStmt    : condition Expr, body Stmt",
+	}, "../stmt.go", stmtTemplate)
+}
 
-const structTemplate = `
+const exprTemplate = `
 package main
 
 type {{.Super}} interface {
@@ -47,7 +49,7 @@ func (s {{$v.Name}}) accept(visitor Visitor) interface{} {
 }
 {{ end }}
 `
-const structTemplate2 = `
+const stmtTemplate = `
 package main
 
 type {{.Super}} interface {
