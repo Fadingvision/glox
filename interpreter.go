@@ -120,6 +120,7 @@ func (v Interpreter) visitFunStmt(stmt FunStmt) {
 
 func (v Interpreter) visitReturnStmt(stmt ReturnStmt) {
 	value := v.evaluate(stmt.value)
+	// use panic to imterminate function process
 	panic(ReturnValue{value})
 }
 
@@ -319,6 +320,18 @@ func (v Interpreter) visitIdentifierExpr(expr IdentifierExpr) interface{} {
 		v.lox.errorReporter.errorWithoutExit(err)
 	}
 	return value
+}
+
+func (v Interpreter) visitFunExpr(expr FunExpr) interface{} {
+	return Function{
+		FunStmt{
+			Token{},
+			expr.params,
+			expr.body,
+		},
+		// function's closure env is the env where the function has been declared
+		v.env,
+	}
 }
 
 func (v Interpreter) visitConditionExpr(expr ConditionExpr) interface{} {

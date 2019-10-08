@@ -75,3 +75,6 @@ func (v AstPrinter) visitLogicalExpr(expr LogicalExpr) interface{} {
 func (v AstPrinter) visitCallExpr(expr CallExpr) interface{} {
 	return "1 1 +"
 }
+func (v AstPrinter) visitFunExpr(expr FunExpr) interface{} {
+	return "1 1 +"
+}

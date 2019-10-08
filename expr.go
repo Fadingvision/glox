@@ -103,3 +103,13 @@ type IdentifierExpr struct {
 func (s IdentifierExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitIdentifierExpr(s)
 }
+
+type FunExpr struct {
+	params []Token
+
+	body BlockStmt
+}
+
+func (s FunExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitFunExpr(s)
+}

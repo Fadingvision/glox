@@ -18,6 +18,7 @@ func main() {
 		"UnaryExpr    : operator Token,right Expr",
 		"CallExpr    : callee Expr,paren Token,arguments []Expr",
 		"IdentifierExpr    : name Token",
+		"FunExpr    : params []Token, body BlockStmt",
 	}, "expr.go", exprTemplate)
 
 	generateAst("Stmt", []string{

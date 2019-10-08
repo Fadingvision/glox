@@ -110,7 +110,7 @@ func (p *Parser) declaration() Stmt {
 		return p.varDeclaration()
 	}
 	if p.match(FUN) {
-		return p.function("function")
+		return p.functionDeclaration("function")
 	}
 
 	return p.statement()
@@ -127,8 +127,8 @@ func (p *Parser) varDeclaration() Stmt {
 	return VarStmt{name, init}
 }
 
-func (p *Parser) function(kind string) Stmt {
-	p.consume(IDENTIFIER, "Expect "+kind+" name.")
+func (p *Parser) functionDeclaration(kind string) Stmt {
+	p.consume(IDENTIFIER, "Function statements require a function name")
 	name := p.previous()
 	p.consume(LEFT_PAREN, "Expect '(' after "+kind+" name.")
 
@@ -505,6 +505,42 @@ func (p *Parser) finishCall(callee Expr) Expr {
 	return CallExpr{callee, paren, args}
 }
 
+// func → "fun" IDENTIFIER? "(" parameters? ")" block ;
+// parameters → IDENTIFIER ( "," IDENTIFIER )* ;
+func (p *Parser) functionExpr() Expr {
+	if p.checkType(IDENTIFIER) {
+		p.advance()
+	}
+	p.consume(LEFT_PAREN, "Expect '(' after fun")
+
+	params := make([]Token, 0)
+
+	// it means function has at least one argument
+	if !p.checkType(RIGHT_PAREN) {
+		p.consume(IDENTIFIER, "Expect parameter name")
+		params = append(params, p.previous())
+	}
+
+	for p.match(COMMA) {
+		if len(params) >= 255 {
+			p.lox.errorReporter.errorWithoutExit(ParseError{
+				p.peek(),
+				"Cannot have more than 255 arguments",
+			})
+		}
+
+		p.consume(IDENTIFIER, "Expect parameter name")
+		params = append(params, p.previous())
+	}
+
+	p.consume(RIGHT_PAREN, "Expect ')' after arguments.")
+	p.consume(LEFT_BRACE, "Expect '{' before body.")
+
+	body := p.blockStatement()
+
+	return FunExpr{params, body}
+}
+
 // unary rule
 func (p *Parser) primary() Expr {
 	if p.match(FALSE) {
@@ -521,6 +557,9 @@ func (p *Parser) primary() Expr {
 	}
 	if p.match(IDENTIFIER, STRING) {
 		return IdentifierExpr{p.previous()}
+	}
+	if p.match(FUN) {
+		return p.functionExpr()
 	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()

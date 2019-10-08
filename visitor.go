@@ -20,6 +20,7 @@ type Visitor interface {
 	visitAssignExpr(expr AssignExpr) interface{}
 	visitIdentifierExpr(expr IdentifierExpr) interface{}
 	visitCallExpr(expr CallExpr) interface{}
+	visitFunExpr(expr FunExpr) interface{}
 }
 
 // StmtVisitor is the interface statements visitor should implement

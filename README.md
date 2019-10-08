@@ -133,8 +133,9 @@ multiplication → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | call ;
 call           → primary ( "(" sequence? ")" )* ;
-primary        → NUMBER | IDENTIFIER | STRING | "false" | "true" | "nil"
-               | "(" expression ")" ;
+primary        → NUMBER | IDENTIFIER | STRING | "false" | "true" | "nil" | func | "(" expression ")" ;
+func → "fun" IDENTIFIER? "(" parameters? ")" block ;
+parameters → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
 
 >下表列出 C 运算符的优先级和结合性。运算符从顶到底以降序列出。

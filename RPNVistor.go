@@ -43,6 +43,9 @@ func (v RPNVisitor) visitLogicalExpr(expr LogicalExpr) interface{} {
 func (v RPNVisitor) visitCallExpr(expr CallExpr) interface{} {
 	return "1 1 +"
 }
+func (v RPNVisitor) visitFunExpr(expr FunExpr) interface{} {
+	return "1 1 +"
+}
 
 // func init() {
 // 	expression := BinaryExpr{
