@@ -72,3 +72,6 @@ func (v AstPrinter) visitIdentifierExpr(expr IdentifierExpr) interface{} {
 func (v AstPrinter) visitLogicalExpr(expr LogicalExpr) interface{} {
 	return "1 1 +"
 }
+func (v AstPrinter) visitCallExpr(expr CallExpr) interface{} {
+	return "1 1 +"
+}

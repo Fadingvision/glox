@@ -76,13 +76,10 @@ func (l *Lox) run(src string) {
 	// AstPrinter{}.print(expr, os.Stdout)
 
 	// Evaluating statements
-	interpreter := Interpreter{
-		l,
-		env{
-			values: make(map[string]interface{}, 0),
-			parent: nil,
-		},
-	}
+	interpreter := NewInterpreter(l, env{
+		values: make(map[string]interface{}, 0),
+		parent: nil,
+	})
 	interpreter.executeBlock(stmts)
 }
 

@@ -16,19 +16,20 @@ func main() {
 		"GroupingExpr : expression Expr",
 		"LiteralExpr  : value interface{}",
 		"UnaryExpr    : operator Token,right Expr",
-		"CallExpr    : callee Expr,paren Token,arguments SequenceExpr",
+		"CallExpr    : callee Expr,paren Token,arguments []Expr",
 		"IdentifierExpr    : name Token",
-	}, "../expr.go", exprTemplate)
+	}, "expr.go", exprTemplate)
 
 	generateAst("Stmt", []string{
 		"ExpressionStmt   : expression Expr",
 		"PrintStmt    : expression Expr",
 		"BlockStmt    : statements []Stmt",
-		"VarStmt    : name Token, init Expr",
-		"FunStmt    : name Token, params []Token, body BlockStmt",
-		"IfStmt    : condition Expr, consequent Stmt, alternate Stmt",
+		"VarStmt    	: name Token, init Expr",
+		"ReturnStmt   : keyword Token, value Expr",
+		"FunStmt    	: name Token, params []Token, body BlockStmt",
+		"IfStmt    		: condition Expr, consequent Stmt, alternate Stmt",
 		"WhileStmt    : condition Expr, body Stmt",
-	}, "../stmt.go", stmtTemplate)
+	}, "stmt.go", stmtTemplate)
 }
 
 const exprTemplate = `

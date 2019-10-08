@@ -109,6 +109,9 @@ func (p *Parser) declaration() Stmt {
 	if p.match(VAR) {
 		return p.varDeclaration()
 	}
+	if p.match(FUN) {
+		return p.function("function")
+	}
 
 	return p.statement()
 }
@@ -124,11 +127,46 @@ func (p *Parser) varDeclaration() Stmt {
 	return VarStmt{name, init}
 }
 
+func (p *Parser) function(kind string) Stmt {
+	p.consume(IDENTIFIER, "Expect "+kind+" name.")
+	name := p.previous()
+	p.consume(LEFT_PAREN, "Expect '(' after "+kind+" name.")
+
+	params := make([]Token, 0)
+
+	// it means function has at least one argument
+	if !p.checkType(RIGHT_PAREN) {
+		p.consume(IDENTIFIER, "Expect parameter name")
+		params = append(params, p.previous())
+	}
+
+	for p.match(COMMA) {
+		if len(params) >= 255 {
+			p.lox.errorReporter.errorWithoutExit(ParseError{
+				p.peek(),
+				"Cannot have more than 255 arguments",
+			})
+		}
+
+		p.consume(IDENTIFIER, "Expect parameter name")
+		params = append(params, p.previous())
+	}
+
+	p.consume(RIGHT_PAREN, "Expect ')' after "+kind+" arguments.")
+	p.consume(LEFT_BRACE, "Expect '{' before "+kind+" body.")
+
+	body := p.blockStatement()
+
+	return FunStmt{name, params, body}
+}
+
 func (p *Parser) statement() Stmt {
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
-
+	if p.match(RETURN) {
+		return p.returnStatement()
+	}
 	if p.match(LEFT_BRACE) {
 		return p.blockStatement()
 	}
@@ -149,6 +187,18 @@ func (p *Parser) printStatement() Stmt {
 	expr := p.expression()
 	p.consume(SEMICOLON, "Unexpected end of input, Expect ';' after value")
 	return PrintStmt{expr}
+}
+
+func (p *Parser) returnStatement() Stmt {
+	keyword := p.previous()
+
+	var returnVal Expr
+	if !p.checkType(SEMICOLON) {
+		returnVal = p.expression()
+	}
+	p.consume(SEMICOLON, "Unexpected end of input, Expect ';' after value")
+
+	return ReturnStmt{keyword, returnVal}
 }
 
 func (p *Parser) ifstatement() Stmt {
@@ -245,7 +295,7 @@ func (p *Parser) expressionStatement() Stmt {
 	return ExpressionStmt{expr}
 }
 
-func (p *Parser) blockStatement() Stmt {
+func (p *Parser) blockStatement() BlockStmt {
 	stmts := make([]Stmt, 0)
 	for !p.checkType(RIGHT_BRACE) && !p.isAtEnd() {
 		stmts = append(stmts, p.declaration())
@@ -402,7 +452,7 @@ func (p *Parser) multiplication() Expr {
 	return expr
 }
 
-// unary rule
+// unary → ( "!" | "-" ) unary | call ;
 func (p *Parser) unary() Expr {
 	if p.match(BANG, MINUS) {
 		operator := p.previous()
@@ -410,7 +460,49 @@ func (p *Parser) unary() Expr {
 		return UnaryExpr{operator, right}
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+// call → primary ( "(" sequence? ")" )* ;
+func (p *Parser) call() Expr {
+	expr := p.primary()
+
+	for true {
+		// handle cases like `getCallback(a, b, c)(d);`
+		if p.match(LEFT_PAREN) {
+			expr = p.finishCall(expr)
+		} else {
+			break
+		}
+	}
+
+	return expr
+}
+
+// constitute the callStatement
+func (p *Parser) finishCall(callee Expr) Expr {
+	var args []Expr
+
+	if !p.checkType(RIGHT_PAREN) {
+		argsExpr := p.sequence()
+		if sequenceExpr, ok := argsExpr.(SequenceExpr); ok {
+			args = sequenceExpr.exprs
+		} else {
+			args = []Expr{argsExpr}
+		}
+	}
+
+	if len(args) >= 255 {
+		p.lox.errorReporter.errorWithoutExit(ParseError{
+			p.peek(),
+			"Cannot have more than 255 arguments",
+		})
+	}
+	p.consume(RIGHT_PAREN, "Expect ')' after arguments.")
+
+	paren := p.previous()
+
+	return CallExpr{callee, paren, args}
 }
 
 // unary rule

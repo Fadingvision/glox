@@ -84,6 +84,18 @@ func (s UnaryExpr) accept(visitor Visitor) interface{} {
 	return visitor.visitUnaryExpr(s)
 }
 
+type CallExpr struct {
+	callee Expr
+
+	paren Token
+
+	arguments []Expr
+}
+
+func (s CallExpr) accept(visitor Visitor) interface{} {
+	return visitor.visitCallExpr(s)
+}
+
 type IdentifierExpr struct {
 	name Token
 }

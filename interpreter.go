@@ -22,7 +22,27 @@ func toBool(val interface{}) bool {
 // Interpreter is for evaluating codes
 type Interpreter struct {
 	lox *Lox
+	/* env holds a runtime envionment that can change at runtime */
 	env env
+	/* global holds a fixed reference to the outermost global environment */
+	global env
+}
+
+// New instantiate a new interpreter
+func NewInterpreter(lox *Lox, global env) Interpreter {
+	interpreter := Interpreter{
+		lox,
+		global,
+		global,
+	}
+
+	interpreter.init()
+	return interpreter
+}
+
+func (v Interpreter) init() {
+	// global functions
+	v.global.set("clock", Clock{})
 }
 
 func (v Interpreter) checkNumberOperands(token Token, exprs ...interface{}) {
@@ -89,7 +109,21 @@ func (v Interpreter) visitPrintStmt(stmt PrintStmt) {
 	fmt.Println(value)
 }
 
-func (v Interpreter) visitBlockStmt(stmt BlockStmt) {
+func (v Interpreter) visitFunStmt(stmt FunStmt) {
+	// let the var declaration and function declaration use the same space
+	v.env.set(stmt.name.literal, Function{
+		stmt,
+		// function's closure env is the env where the function has been declared
+		v.env,
+	})
+}
+
+func (v Interpreter) visitReturnStmt(stmt ReturnStmt) {
+	value := v.evaluate(stmt.value)
+	panic(ReturnValue{value})
+}
+
+func (v Interpreter) executeBlockStmt(stmt BlockStmt, blockEnv env) {
 	/*
 		This is how we fully support local scope.
 		When block statement is called, store the parent scope,
@@ -97,10 +131,6 @@ func (v Interpreter) visitBlockStmt(stmt BlockStmt) {
 		After these, restore the previous env.
 	*/
 	parent := v.env
-	blockEnv := env{
-		values: make(map[string]interface{}, 0),
-		parent: &parent,
-	}
 	v.env = blockEnv
 	defer func() {
 		v.env = parent
@@ -109,6 +139,13 @@ func (v Interpreter) visitBlockStmt(stmt BlockStmt) {
 	for _, statement := range stmt.statements {
 		v.execute(statement)
 	}
+}
+
+func (v Interpreter) visitBlockStmt(stmt BlockStmt) {
+	v.executeBlockStmt(stmt, env{
+		values: make(map[string]interface{}, 0),
+		parent: &v.env,
+	})
 }
 
 func (v Interpreter) visitVarStmt(stmt VarStmt) {
@@ -248,6 +285,32 @@ func (v Interpreter) visitUnaryExpr(expr UnaryExpr) interface{} {
 		return !toBool(right)
 	}
 	return nil
+}
+
+func (v Interpreter) visitCallExpr(expr CallExpr) interface{} {
+	// this will get us a Callable struct
+	callee := v.evaluate(expr.callee)
+	args := make([]interface{}, 0)
+
+	for _, expression := range expr.arguments {
+		args = append(args, v.evaluate(expression))
+	}
+
+	function, ok := callee.(Callable)
+	if !ok {
+		v.lox.errorReporter.error(RuntimeError{
+			expr.paren,
+			fmt.Sprintf("%T is not a function", function),
+		})
+	} else if len(args) != function.arity() {
+		// match their argument numbers
+		v.lox.errorReporter.error(RuntimeError{
+			expr.paren,
+			fmt.Sprintf("expect %d arguments but got %d.", function.arity(), len(args)),
+		})
+	}
+
+	return function.call(v, args)
 }
 
 func (v Interpreter) visitIdentifierExpr(expr IdentifierExpr) interface{} {

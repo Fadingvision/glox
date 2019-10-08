@@ -38,6 +38,28 @@ func (s VarStmt) accept(visitor StmtVisitor) {
 	visitor.visitVarStmt(s)
 }
 
+type ReturnStmt struct {
+	keyword Token
+
+	value Expr
+}
+
+func (s ReturnStmt) accept(visitor StmtVisitor) {
+	visitor.visitReturnStmt(s)
+}
+
+type FunStmt struct {
+	name Token
+
+	params []Token
+
+	body BlockStmt
+}
+
+func (s FunStmt) accept(visitor StmtVisitor) {
+	visitor.visitFunStmt(s)
+}
+
 type IfStmt struct {
 	condition Expr
 

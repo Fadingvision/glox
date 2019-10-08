@@ -19,6 +19,7 @@ type Visitor interface {
 	visitConditionExpr(expr ConditionExpr) interface{}
 	visitAssignExpr(expr AssignExpr) interface{}
 	visitIdentifierExpr(expr IdentifierExpr) interface{}
+	visitCallExpr(expr CallExpr) interface{}
 }
 
 // StmtVisitor is the interface statements visitor should implement
@@ -27,6 +28,8 @@ type StmtVisitor interface {
 	// so the return type of the visit methods is void, not Object
 	visitExpressionStmt(stmt ExpressionStmt)
 	visitPrintStmt(stmt PrintStmt)
+	visitFunStmt(stmt FunStmt)
+	visitReturnStmt(stmt ReturnStmt)
 	visitVarStmt(stmt VarStmt)
 	visitBlockStmt(stmt BlockStmt)
 	visitIfStmt(stmt IfStmt)
