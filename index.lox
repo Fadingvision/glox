@@ -38,9 +38,9 @@ print c;
   What do you think users will expect this to do?
 */
 
-/* Lox disable it: Cannot read local variable in its own initializer. */
 var a = 1;
 {
+  // FIXME: Cannot read local variable in its own initializer.
   var a = a + 2;
   print a;
 }
@@ -116,11 +116,11 @@ thrice(fun (a) {
 
 /* is this program valid? */
 /* 
-  Lox will override the variable. like javascript.
   Most of static typed language like go disallow it.
   I think latter approach is better.
 */
 fun scope(a) {
+  // FIXME: with reslover, we can detect redeclared in local block
   var a = "local";
   print a;
 }
@@ -135,6 +135,8 @@ var a = "global";
   fun showA() {
     print a;
   }
+  // FIXME: we alao can detect Illegal return statement
+  return;
   
   showA(); // global
   var a = "block";

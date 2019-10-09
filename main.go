@@ -80,15 +80,10 @@ func (l *Lox) run(src string) {
 		values: make(map[string]interface{}, 0),
 		parent: nil,
 	})
-
-	resolver := Resolver{
-		l,
-		&interpreter,
-		make(scopes, 0),
-	}
-
+	resolver := NewResolver(l, &interpreter)
 	resolver.resolveBody(stmts)
 
+	// Stop if there was a resolution error.
 	if l.hasError {
 		return
 	}

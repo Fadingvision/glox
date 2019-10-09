@@ -1,5 +1,6 @@
 package main
 
+// stack based on slice
 type scopes []map[string]bool
 
 func (s scopes) peek() map[string]bool {
@@ -10,20 +11,43 @@ func (s scopes) isEmpty() bool {
 	return len(s) == 0
 }
 
-// type RuntimeError struct {
-// 	token Token
-// 	msg   string
-// }
+type functionType int
 
-// func (e RuntimeError) Error() string {
-// 	return fmt.Sprintf("[GLOX] RuntimeError: Line %d, Cloumn %d, %s", e.token.line, e.token.column, e.msg)
-// }
+const (
+	// NONE means we are not in a function statement body
+	NONE functionType = iota
+	// FUNCTION means we are in a function statement body
+	FUNCTION
+	// METHOD means we are in a class method statement body
+	METHOD
+)
 
-// Resolver is for evaluating codes
+/*
+	Resolver do a single walk(better O(n) ) over the ast tree to resolve all of the variables it contains
+	This layer is often used for Semantic Analysis, for example:
+
+	- Type check
+
+	- Optimization
+
+	- semantic error report
+
+*/
 type Resolver struct {
-	lox         *Lox
-	interpreter *Interpreter
-	scopes      scopes
+	lox             *Lox
+	interpreter     *Interpreter
+	scopes          scopes
+	currentFunction functionType
+}
+
+// NewResolver create a Resolver instance
+func NewResolver(l *Lox, interpreter *Interpreter) Resolver {
+	return Resolver{
+		l,
+		interpreter,
+		make(scopes, 0),
+		NONE,
+	}
 }
 
 func (r Resolver) resolveStmt(stmt Stmt) {
@@ -43,10 +67,13 @@ func (r Resolver) resolveExpr(expr Expr) {
 func (r Resolver) visitFunStmt(stmt FunStmt) {
 	r.declare(stmt.name)
 	r.define(stmt.name)
-	r.resolveFunction(stmt)
+	r.resolveFunction(stmt, FUNCTION)
 }
 
 func (r Resolver) visitFunExpr(expr FunExpr) interface{} {
+	parentFunctionType := r.currentFunction
+	r.currentFunction = FUNCTION
+
 	// like the blockStatement
 	r.scopes = r.beginScope()
 	for _, param := range expr.params {
@@ -55,10 +82,15 @@ func (r Resolver) visitFunExpr(expr FunExpr) interface{} {
 	}
 	r.resolveBody(expr.body.statements)
 	r.endScope()
+
+	r.currentFunction = parentFunctionType
 	return nil
 }
 
-func (r Resolver) resolveFunction(stmt FunStmt) {
+func (r Resolver) resolveFunction(stmt FunStmt, ftype functionType) {
+	parentFunctionType := r.currentFunction
+	r.currentFunction = ftype
+
 	// like the blockStatement
 	r.scopes = r.beginScope()
 	for _, param := range stmt.params {
@@ -67,6 +99,10 @@ func (r Resolver) resolveFunction(stmt FunStmt) {
 	}
 	r.resolveBody(stmt.body.statements)
 	r.endScope()
+
+	// In case there is nest function,
+	// after function has been resolved, we reset current function type to previous
+	r.currentFunction = parentFunctionType
 }
 
 func (r Resolver) beginScope() scopes {
@@ -98,7 +134,17 @@ func (r Resolver) declare(name Token) {
 	if len(r.scopes) == 0 {
 		return
 	}
-	r.scopes.peek()[name.literal] = false
+
+	scope := r.scopes.peek()
+
+	if _, ok := scope[name.literal]; ok {
+		r.lox.errorReporter.error(ParseError{
+			name,
+			"a redeclared in this block",
+		})
+	}
+
+	scope[name.literal] = false
 }
 
 func (r Resolver) define(name Token) {
@@ -117,11 +163,13 @@ func (r Resolver) visitAssignExpr(expr AssignExpr) interface{} {
 
 func (r Resolver) visitIdentifierExpr(expr IdentifierExpr) interface{} {
 	// lox Cannot read local variable in its own initializer.
-	if !r.scopes.isEmpty() && r.scopes.peek()[expr.name.literal] == false {
-		r.lox.errorReporter.error(ParseError{
-			expr.name,
-			"Cannot read local variable in its own initializer.",
-		})
+	if !r.scopes.isEmpty() {
+		if isDefined, ok := r.scopes.peek()[expr.name.literal]; ok && isDefined == false {
+			r.lox.errorReporter.error(ParseError{
+				expr.name,
+				"Cannot read local variable in its own initializer.",
+			})
+		}
 	}
 
 	r.resolveLocal(expr, expr.name)
@@ -172,6 +220,14 @@ func (r Resolver) visitPrintStmt(stmt PrintStmt) {
 }
 
 func (r Resolver) visitReturnStmt(stmt ReturnStmt) {
+	// with `r.currentFunction`, we can know if we are in function body when we met a return statement
+	if r.currentFunction == NONE {
+		r.lox.errorReporter.error(ParseError{
+			stmt.keyword,
+			"Illegal return statement",
+		})
+	}
+
 	if stmt.value != nil {
 		r.resolveExpr(stmt.value)
 	}
