@@ -67,12 +67,12 @@ func (l *Lox) run(src string) {
 	l.scanner.source = src
 	l.scanner.scanTokens()
 	l.parser.tokens = l.scanner.tokens
-	fmt.Println("tokens: ", l.parser.tokens)
+	// fmt.Println("tokens: ", l.parser.tokens)
 	stmts := l.parser.parse()
 	if l.hasError {
 		return
 	}
-	// check if our expr works as we expect
+	// check if our AST works as we expect
 	// AstPrinter{}.print(expr, os.Stdout)
 
 	// Evaluating statements
@@ -80,6 +80,19 @@ func (l *Lox) run(src string) {
 		values: make(map[string]interface{}, 0),
 		parent: nil,
 	})
+
+	resolver := Resolver{
+		l,
+		&interpreter,
+		make(scopes, 0),
+	}
+
+	resolver.resolveBody(stmts)
+
+	if l.hasError {
+		return
+	}
+
 	interpreter.executeBlock(stmts)
 }
 

@@ -37,6 +37,8 @@ print c;
   What does analogous code in other languages you are familiar with do? 
   What do you think users will expect this to do?
 */
+
+/* Lox disable it: Cannot read local variable in its own initializer. */
 var a = 1;
 {
   var a = a + 2;
@@ -124,3 +126,20 @@ fun scope(a) {
 }
 
 scope("global"); // "local"
+
+/* closures trap, which is our resolver works on */
+
+
+var a = "global";
+{
+  fun showA() {
+    print a;
+  }
+  
+  showA(); // global
+  var a = "block";
+  // Before our resolver shows, it prints "block",
+  // In other languages with closures, this should be "global"
+  // Javascript have var-hoist, so it may be different.
+  showA();
+}

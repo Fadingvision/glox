@@ -26,6 +26,8 @@ type Interpreter struct {
 	env env
 	/* global holds a fixed reference to the outermost global environment */
 	global env
+	/* locals holds distance from it's delaration for each IdentifierExpr or AssignExpr */
+	locals map[Expr]int
 }
 
 // New instantiate a new interpreter
@@ -34,6 +36,7 @@ func NewInterpreter(lox *Lox, global env) Interpreter {
 		lox,
 		global,
 		global,
+		make(map[Expr]int, 0),
 	}
 
 	interpreter.init()
@@ -43,6 +46,11 @@ func NewInterpreter(lox *Lox, global env) Interpreter {
 func (v Interpreter) init() {
 	// global functions
 	v.global.set("clock", Clock{})
+}
+
+func (v Interpreter) resolve(expr Expr, distance int) {
+	// save
+	v.locals[expr] = distance
 }
 
 func (v Interpreter) checkNumberOperands(token Token, exprs ...interface{}) {
@@ -159,18 +167,27 @@ func (v Interpreter) visitVarStmt(stmt VarStmt) {
 	v.env.set(stmt.name.literal, value)
 }
 
-func (v Interpreter) visitAssignExpr(stmt AssignExpr) interface{} {
+func (v Interpreter) visitAssignExpr(expr AssignExpr) interface{} {
 	var value interface{}
-	if stmt.right != nil {
-		value = v.evaluate(stmt.right)
+	var err error
+	if expr.right != nil {
+		value = v.evaluate(expr.right)
 	}
 
-	_, err := v.env.assign(stmt.left, value)
+	// if distance exist, get the value form there
+	// otherwise, it's in global
+	if distance, ok := v.locals[expr]; ok {
+		_, err = v.env.assignAt(expr.left, value, distance)
+	} else {
+		_, err = v.env.assign(expr.left, value)
+	}
+
 	if err != nil {
 		v.lox.errorReporter.errorWithoutExit(err)
 	}
 	return value
 }
+
 func (v Interpreter) visitLogicalExpr(expr LogicalExpr) interface{} {
 	// logic operator is short-circuit
 	left := v.evaluate(expr.left)
@@ -315,7 +332,17 @@ func (v Interpreter) visitCallExpr(expr CallExpr) interface{} {
 }
 
 func (v Interpreter) visitIdentifierExpr(expr IdentifierExpr) interface{} {
-	value, err := v.env.get(expr.name)
+	var value interface{}
+	var err error
+
+	// if distance exist, get the value form there
+	// otherwise, it's in global
+	if distance, ok := v.locals[expr]; ok {
+		value, err = v.env.getAt(expr.name, distance)
+	} else {
+		value, err = v.global.get(expr.name)
+	}
+
 	if err != nil {
 		v.lox.errorReporter.errorWithoutExit(err)
 	}
