@@ -590,6 +590,9 @@ func (p *Parser) primary() Expr {
 	if p.match(FUN) {
 		return p.functionExpr()
 	}
+	if p.match(THIS) {
+		return ThisExpr{p.previous()}
+	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()
 		if !p.match(RIGHT_PAREN) {

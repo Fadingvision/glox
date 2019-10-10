@@ -120,9 +120,9 @@ func (v Interpreter) visitPrintStmt(stmt PrintStmt) {
 func (v Interpreter) visitFunStmt(stmt FunStmt) {
 	// let the var declaration and function declaration use the same space
 	v.env.set(stmt.name.literal, Function{
-		stmt,
+		stmt: stmt,
 		// function's closure env is the env where the function has been declared
-		v.env,
+		closure: v.env,
 	})
 }
 
@@ -135,6 +135,7 @@ func (v Interpreter) visitClassStmt(stmt ClassStmt) {
 		methods[fun.name.literal] = Function{
 			fun,
 			v.env,
+			fun.name.literal == "init",
 		}
 	}
 	class := Class{
@@ -146,8 +147,11 @@ func (v Interpreter) visitClassStmt(stmt ClassStmt) {
 }
 
 func (v Interpreter) visitReturnStmt(stmt ReturnStmt) {
-	value := v.evaluate(stmt.value)
-	// use panic to imterminate function process
+	var value interface{}
+	if stmt.value != nil {
+		value = v.evaluate(stmt.value)
+	}
+	// use panic to terminate function process
 	panic(ReturnValue{value})
 }
 
@@ -368,15 +372,33 @@ func (v Interpreter) visitIdentifierExpr(expr IdentifierExpr) interface{} {
 	return value
 }
 
+func (v Interpreter) visitThisExpr(expr ThisExpr) interface{} {
+	var value interface{}
+	var err error
+
+	// if distance exist, get the value form there
+	// otherwise, it's in global
+	if distance, ok := v.locals[expr]; ok {
+		value, err = v.env.getAt(expr.keyword, distance)
+	} else {
+		value, err = v.global.get(expr.keyword)
+	}
+
+	if err != nil {
+		v.lox.errorReporter.errorWithoutExit(err)
+	}
+	return value
+}
+
 func (v Interpreter) visitFunExpr(expr FunExpr) interface{} {
 	return Function{
-		FunStmt{
+		stmt: FunStmt{
 			Token{},
 			expr.params,
 			expr.body,
 		},
 		// function's closure env is the env where the function has been declared
-		v.env,
+		closure: v.env,
 	}
 }
 
@@ -400,10 +422,9 @@ func (v Interpreter) visitSetExpr(expr SetExpr) interface{} {
 		value := v.evaluate(expr.value)
 		err := obj.set(expr.name, value)
 		if err != nil {
-			return value
-		} else {
 			v.lox.errorReporter.error(err)
 		}
+		return value
 	}
 
 	v.lox.errorReporter.error(RuntimeError{
@@ -420,10 +441,9 @@ func (v Interpreter) visitGetExpr(expr GetExpr) interface{} {
 	if obj, ok := object.(ClassInstance); ok {
 		value, err := obj.get(expr.name)
 		if err != nil {
-			return value
-		} else {
 			v.lox.errorReporter.error(err)
 		}
+		return value
 	}
 
 	v.lox.errorReporter.error(RuntimeError{
@@ -432,8 +452,4 @@ func (v Interpreter) visitGetExpr(expr GetExpr) interface{} {
 	})
 
 	return nil
-}
-
-func (v Interpreter) visitThisExpr(expr ThisExpr) interface{} {
-	return "1 1 +"
 }

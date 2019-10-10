@@ -1,6 +1,8 @@
 package main
 
-import "time"
+import (
+	"time"
+)
 
 // Callable interface, function and methods should both implement
 type Callable interface {
@@ -32,6 +34,7 @@ type Function struct {
 	stmt FunStmt
 	// function declare environment, which is known as `closure`
 	closure env
+	isInit  bool
 }
 
 // TODO: Add function string representation
@@ -66,7 +69,30 @@ func (f Function) call(interpreter Interpreter, args []interface{}) interface{} 
 		interpreter.executeBlockStmt(f.stmt.body, environment)
 	}()
 
+	// If the function is an initializer,
+	// We ignore the nil return value or override the actual return value,
+	// and forcibly return this.
+	if f.isInit {
+		return f.closure.values["this"]
+	}
+
 	return returnVal
+}
+
+func (f Function) bind(instance ClassInstance) Function {
+	// Add a new env to store `this` in interpreter to sync the resolver
+	environment := env{
+		values: make(map[string]interface{}, 0),
+		parent: &f.closure,
+	}
+
+	environment.set("this", instance)
+
+	return Function{
+		stmt:    f.stmt,
+		closure: environment,
+		isInit:  f.isInit,
+	}
 }
 
 func (f Function) arity() int {

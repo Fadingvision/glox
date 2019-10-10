@@ -12,6 +12,7 @@ func (s scopes) isEmpty() bool {
 }
 
 type functionType int
+type classType int
 
 const (
 	// NONE means we are not in a function statement body
@@ -20,6 +21,15 @@ const (
 	FUNCTION
 	// METHOD means we are in a class method statement body
 	METHOD
+	// INITIALIZER means we are in a class init method statement body
+	INITIALIZER
+)
+
+const (
+	// NoneClass means we are not in a class statement body
+	NONECLASS classType = iota
+	// CLASS means we are in a class statement body
+	INCLASS
 )
 
 /*
@@ -34,10 +44,13 @@ const (
 
 */
 type Resolver struct {
-	lox             *Lox
-	interpreter     *Interpreter
-	scopes          scopes
+	lox         *Lox
+	interpreter *Interpreter
+	scopes      scopes
+	// currentFunction shows if we are visiting a function statement
 	currentFunction functionType
+	// currentClass shows if we are visiting a class statement
+	currentClass classType
 }
 
 // NewResolver create a Resolver instance
@@ -47,6 +60,7 @@ func NewResolver(l *Lox, interpreter *Interpreter) Resolver {
 		interpreter,
 		make(scopes, 0),
 		NONE,
+		NONECLASS,
 	}
 }
 
@@ -122,12 +136,26 @@ func (r Resolver) visitBlockStmt(stmt BlockStmt) {
 }
 
 func (r Resolver) visitClassStmt(stmt ClassStmt) {
+	parentClassType := r.currentClass
+	r.currentClass = INCLASS
+
 	r.declare(stmt.name)
 	r.define(stmt.name)
 
+	// Add a new scope between method function scope and class declaration scope
+	r.scopes = r.beginScope()
+	r.scopes.peek()["this"] = true
+
 	for _, fun := range stmt.methods {
-		r.resolveFunction(fun, METHOD)
+		functionType := METHOD
+		if fun.name.literal == "init" {
+			functionType = INITIALIZER
+		}
+		r.resolveFunction(fun, functionType)
 	}
+	r.endScope()
+
+	r.currentClass = parentClassType
 }
 
 func (r Resolver) visitVarStmt(stmt VarStmt) {
@@ -167,6 +195,19 @@ func (r Resolver) define(name Token) {
 func (r Resolver) visitAssignExpr(expr AssignExpr) interface{} {
 	r.resolveExpr(expr.right)
 	r.resolveLocal(expr, expr.left)
+	return nil
+}
+
+func (r Resolver) visitThisExpr(expr ThisExpr) interface{} {
+	if r.currentClass == NONECLASS {
+		r.lox.errorReporter.error(ParseError{
+			expr.keyword,
+			"Illegal 'this'",
+		})
+	}
+
+	// resolve this like any other local variable.
+	r.resolveLocal(expr, expr.keyword)
 	return nil
 }
 
@@ -238,6 +279,12 @@ func (r Resolver) visitReturnStmt(stmt ReturnStmt) {
 	}
 
 	if stmt.value != nil {
+		if r.currentFunction == INITIALIZER {
+			r.lox.errorReporter.error(ParseError{
+				stmt.keyword,
+				"Illegal return statement, Cannot return a value form a initializer",
+			})
+		}
 		r.resolveExpr(stmt.value)
 	}
 }
@@ -293,10 +340,8 @@ func (r Resolver) visitSetExpr(expr SetExpr) interface{} {
 	r.resolveExpr(expr.object)
 	return nil
 }
+
 func (r Resolver) visitGetExpr(expr GetExpr) interface{} {
 	r.resolveExpr(expr.object)
-	return nil
-}
-func (r Resolver) visitThisExpr(expr ThisExpr) interface{} {
 	return nil
 }

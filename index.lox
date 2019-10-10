@@ -147,6 +147,31 @@ var a = "global";
 }
 
 // class
-class Bagel {}
-var bagel = Bagel();
-print bagel; // Prints "Bagel instance".
+
+// lox class method is `bound methods`, which method's this reference will always be their instance
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is delicious!".
+
+
+// init function
+class Foo {
+  init(a, b) {
+    this.a = a;
+    this.b = b;
+  }
+}
+var foo = Foo(123, 456);
+print foo.a; // Prints "123".
+print foo.b; // Prints "456".
+// we can call init on our own
+print foo.init(222, 333); // Prints "<classInstance Foo".
+print foo.a; // Prints "222".
+print foo.b; // Prints "333".
