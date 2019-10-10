@@ -17,6 +17,9 @@ func main() {
 		"LiteralExpr  : value interface{}",
 		"UnaryExpr    : operator Token,right Expr",
 		"CallExpr    : callee Expr,paren Token,arguments []Expr",
+		"GetExpr    : object Expr,name Token",
+		"SetExpr    : object Expr,name Token,value Expr",
+		"ThisExpr    : keyword Token",
 		"IdentifierExpr    : name Token",
 		"FunExpr    : params []Token, body BlockStmt",
 	}, "expr.go", exprTemplate)
@@ -26,6 +29,7 @@ func main() {
 		"PrintStmt    : expression Expr",
 		"BlockStmt    : statements []Stmt",
 		"VarStmt    	: name Token, init Expr",
+		"ClassStmt    : name Token, methods []FunStmt",
 		"ReturnStmt   : keyword Token, value Expr",
 		"FunStmt    	: name Token, params []Token, body BlockStmt",
 		"IfStmt    		: condition Expr, consequent Stmt, alternate Stmt",

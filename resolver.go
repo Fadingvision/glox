@@ -121,6 +121,15 @@ func (r Resolver) visitBlockStmt(stmt BlockStmt) {
 	r.endScope()
 }
 
+func (r Resolver) visitClassStmt(stmt ClassStmt) {
+	r.declare(stmt.name)
+	r.define(stmt.name)
+
+	for _, fun := range stmt.methods {
+		r.resolveFunction(fun, METHOD)
+	}
+}
+
 func (r Resolver) visitVarStmt(stmt VarStmt) {
 	r.declare(stmt.name)
 	if stmt.init != nil {
@@ -276,5 +285,18 @@ func (r Resolver) visitSequenceExpr(expr SequenceExpr) interface{} {
 	for _, expression := range expr.exprs {
 		r.resolveExpr(expression)
 	}
+	return nil
+}
+
+func (r Resolver) visitSetExpr(expr SetExpr) interface{} {
+	r.resolveExpr(expr.value)
+	r.resolveExpr(expr.object)
+	return nil
+}
+func (r Resolver) visitGetExpr(expr GetExpr) interface{} {
+	r.resolveExpr(expr.object)
+	return nil
+}
+func (r Resolver) visitThisExpr(expr ThisExpr) interface{} {
 	return nil
 }

@@ -78,3 +78,12 @@ func (v AstPrinter) visitCallExpr(expr CallExpr) interface{} {
 func (v AstPrinter) visitFunExpr(expr FunExpr) interface{} {
 	return "1 1 +"
 }
+func (v AstPrinter) visitSetExpr(expr SetExpr) interface{} {
+	return "1 1 +"
+}
+func (v AstPrinter) visitGetExpr(expr GetExpr) interface{} {
+	return "1 1 +"
+}
+func (v AstPrinter) visitThisExpr(expr ThisExpr) interface{} {
+	return "1 1 +"
+}

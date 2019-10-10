@@ -112,6 +112,9 @@ func (p *Parser) declaration() Stmt {
 	if p.match(FUN) {
 		return p.functionDeclaration("function")
 	}
+	if p.match(CLASS) {
+		return p.classDeclaration()
+	}
 
 	return p.statement()
 }
@@ -127,7 +130,25 @@ func (p *Parser) varDeclaration() Stmt {
 	return VarStmt{name, init}
 }
 
-func (p *Parser) functionDeclaration(kind string) Stmt {
+// classDecl → "class" IDENTIFIER "{" function* "}" ;
+func (p *Parser) classDeclaration() Stmt {
+	p.consume(IDENTIFIER, "class statements require a class name")
+	name := p.previous()
+
+	p.consume(LEFT_BRACE, "Expect '{' before class body.")
+
+	methods := make([]FunStmt, 0)
+
+	for !p.checkType(RIGHT_BRACE) && !p.isAtEnd() {
+		methods = append(methods, p.functionDeclaration("method"))
+	}
+
+	p.consume(RIGHT_BRACE, "Expect '}' after class body.")
+
+	return ClassStmt{name, methods}
+}
+
+func (p *Parser) functionDeclaration(kind string) FunStmt {
 	p.consume(IDENTIFIER, "Function statements require a function name")
 	name := p.previous()
 	p.consume(LEFT_PAREN, "Expect '(' after "+kind+" name.")
@@ -341,6 +362,9 @@ func (p *Parser) assignment() Expr {
 			name := expr.name
 			return AssignExpr{name, value}
 		}
+		if expr, ok := expr.(GetExpr); ok {
+			return SetExpr{expr.object, expr.name, value}
+		}
 		p.lox.errorReporter.errorWithoutExit(RuntimeError{
 			equal,
 			"Invalid left-hand assignment target.",
@@ -463,7 +487,7 @@ func (p *Parser) unary() Expr {
 	return p.call()
 }
 
-// call → primary ( "(" sequence? ")" )* ;
+// call → primary ( "(" sequence? ")" | "." IDENTIFIER )* ;
 func (p *Parser) call() Expr {
 	expr := p.primary()
 
@@ -471,6 +495,11 @@ func (p *Parser) call() Expr {
 		// handle cases like `getCallback(a, b, c)(d);`
 		if p.match(LEFT_PAREN) {
 			expr = p.finishCall(expr)
+		} else if p.match(DOT) {
+			// handle object grammer: `a.b.c()`
+			p.consume(IDENTIFIER, "Expect property name after '.'.")
+			name := p.previous()
+			expr = GetExpr{expr, name}
 		} else {
 			break
 		}

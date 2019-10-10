@@ -41,7 +41,7 @@ print c;
 var a = 1;
 {
   // FIXME: Cannot read local variable in its own initializer.
-  var a = a + 2;
+  // var a = a + 2;
   print a;
 }
 
@@ -121,7 +121,7 @@ thrice(fun (a) {
 */
 fun scope(a) {
   // FIXME: with reslover, we can detect redeclared in local block
-  var a = "local";
+  // var a = "local";
   print a;
 }
 
@@ -136,7 +136,7 @@ var a = "global";
     print a;
   }
   // FIXME: we alao can detect Illegal return statement
-  return;
+  // return;
   
   showA(); // global
   var a = "block";
@@ -145,3 +145,8 @@ var a = "global";
   // Javascript have var-hoist, so it may be different.
   showA();
 }
+
+// class
+class Bagel {}
+var bagel = Bagel();
+print bagel; // Prints "Bagel instance".

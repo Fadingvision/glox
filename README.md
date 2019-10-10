@@ -97,20 +97,6 @@ expr → NUMBER
 
 ### Lox的表达式语法规则：
 
-```js
-expression → literal
-           | unary
-           | binary
-           | grouping ;
-
-literal    → NUMBER | STRING | "true" | "false" | "nil" ;
-grouping   → "(" expression ")" ;
-unary      → ( "-" | "!" ) expression ;
-binary     → expression operator expression ;
-operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
-           | "+"  | "-"  | "*" | "/" ;
-```
-
 __带有运算优先级的表达式CFG表示：__
 
 参考C语言运算优先级，从上往下优先级依次递增：
@@ -119,7 +105,7 @@ __带有运算优先级的表达式CFG表示：__
 expression → sequence ;
 
 sequence       → assignment ("," assignment)*
-assignment → IDENTIFIER "=" assignment
+assignment → ( call "." )? IDENTIFIER "=" assignment
            | condition ;
 condition    	 → logic_or ("?" condition ":" condition)?
 
@@ -132,7 +118,7 @@ addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | call ;
-call           → primary ( "(" sequence? ")" )* ;
+call           → primary ( "(" sequence? ")" | "." IDENTIFIER )* ;
 primary        → NUMBER | IDENTIFIER | STRING | "false" | "true" | "nil" | func | "(" expression ")" ;
 func → "fun" IDENTIFIER? "(" parameters? ")" block ;
 parameters → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -151,6 +137,7 @@ parameters → IDENTIFIER ( "," IDENTIFIER )* ;
 program     → declaration* EOF ;
 
 declaration → varDecl
+            | classDecl
             | funDecl
             | statement ;
 
@@ -163,8 +150,9 @@ statement   → exprStmt
             | blockStmt ;
 
 varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
-
+classDecl   → "class" IDENTIFIER "{" function* "}" ;
 funDecl  → "fun" function ;
+
 function → IDENTIFIER "(" parameters? ")" block ;
 parameters → IDENTIFIER ( "," IDENTIFIER )* ;
 
@@ -181,6 +169,19 @@ forStmt   → "for" "(" ( varDecl | exprStmt | ";" )
                       expression? ")" statement ;
 ```
 
+### 类和继承
+
+类的实现方式通常有三种：
+
+- classes
+- prototypes
+- multimethods(多分派)
+
+类的主要功能：
+
+- 暴露一个构造函数用来创建和初始化新的实例
+- 提供一个方法用来存储和读取实例上的字段
+- 定义被所有实例共享的一系列方法用来操控实例的状态
 
 ### 递归下降
 

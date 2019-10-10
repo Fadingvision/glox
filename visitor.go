@@ -21,6 +21,9 @@ type Visitor interface {
 	visitIdentifierExpr(expr IdentifierExpr) interface{}
 	visitCallExpr(expr CallExpr) interface{}
 	visitFunExpr(expr FunExpr) interface{}
+	visitSetExpr(expr SetExpr) interface{}
+	visitGetExpr(expr GetExpr) interface{}
+	visitThisExpr(expr ThisExpr) interface{}
 }
 
 // StmtVisitor is the interface statements visitor should implement
@@ -35,4 +38,5 @@ type StmtVisitor interface {
 	visitBlockStmt(stmt BlockStmt)
 	visitIfStmt(stmt IfStmt)
 	visitWhileStmt(stmt WhileStmt)
+	visitClassStmt(stmt ClassStmt)
 }

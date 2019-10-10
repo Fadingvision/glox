@@ -126,6 +126,25 @@ func (v Interpreter) visitFunStmt(stmt FunStmt) {
 	})
 }
 
+func (v Interpreter) visitClassStmt(stmt ClassStmt) {
+	// Two-stage variable binding process allows references to the class inside its own methods.
+	v.env.set(stmt.name.literal, nil)
+
+	methods := make(map[string]Function, 0)
+	for _, fun := range stmt.methods {
+		methods[fun.name.literal] = Function{
+			fun,
+			v.env,
+		}
+	}
+	class := Class{
+		stmt.name.literal,
+		methods,
+		v,
+	}
+	v.env.assign(stmt.name, class)
+}
+
 func (v Interpreter) visitReturnStmt(stmt ReturnStmt) {
 	value := v.evaluate(stmt.value)
 	// use panic to imterminate function process
@@ -372,4 +391,49 @@ func (v Interpreter) visitConditionExpr(expr ConditionExpr) interface{} {
 func (v Interpreter) visitSequenceExpr(expr SequenceExpr) interface{} {
 	// Take the last one of expressions to be the sequence result
 	return expr.exprs[len(expr.exprs)-1].accept(v)
+}
+
+func (v Interpreter) visitSetExpr(expr SetExpr) interface{} {
+	object := v.evaluate(expr.object)
+
+	if obj, ok := object.(ClassInstance); ok {
+		value := v.evaluate(expr.value)
+		err := obj.set(expr.name, value)
+		if err != nil {
+			return value
+		} else {
+			v.lox.errorReporter.error(err)
+		}
+	}
+
+	v.lox.errorReporter.error(RuntimeError{
+		expr.name,
+		fmt.Sprintf("%T is not a object", object),
+	})
+
+	return nil
+}
+
+func (v Interpreter) visitGetExpr(expr GetExpr) interface{} {
+	object := v.evaluate(expr.object)
+
+	if obj, ok := object.(ClassInstance); ok {
+		value, err := obj.get(expr.name)
+		if err != nil {
+			return value
+		} else {
+			v.lox.errorReporter.error(err)
+		}
+	}
+
+	v.lox.errorReporter.error(RuntimeError{
+		expr.name,
+		fmt.Sprintf("%T is not a object", object),
+	})
+
+	return nil
+}
+
+func (v Interpreter) visitThisExpr(expr ThisExpr) interface{} {
+	return "1 1 +"
 }
