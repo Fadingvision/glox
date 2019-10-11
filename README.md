@@ -119,7 +119,7 @@ multiplication → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | call ;
 call           → primary ( "(" sequence? ")" | "." IDENTIFIER )* ;
-primary        → NUMBER | IDENTIFIER | STRING | "false" | "true" | "nil" | func | "(" expression ")" ;
+primary        → NUMBER | IDENTIFIER | STRING | "this" | "false" | "true" | "nil" | func | "(" expression ")" | ("super" "." IDENTIFIER) ;
 func → "fun" IDENTIFIER? "(" parameters? ")" block ;
 parameters → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
@@ -150,7 +150,7 @@ statement   → exprStmt
             | blockStmt ;
 
 varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
-classDecl   → "class" IDENTIFIER "{" ("static")? function* "}" ;
+classDecl   → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" "static"? function* "}" ;
 funDecl  → "fun" function ;
 
 function → IDENTIFIER "(" parameters? ")" block ;

@@ -21,7 +21,8 @@ func main() {
 		"SetExpr    : object Expr,name Token,value Expr",
 		"ThisExpr    : keyword Token",
 		"IdentifierExpr    : name Token",
-		"FunExpr    : params []Token, body BlockStmt",
+		"FunExpr    : params []Token,body BlockStmt",
+		"SuperExpr    : keyword Token,method Token",
 	}, "expr.go", exprTemplate)
 
 	generateAst("Stmt", []string{
@@ -29,7 +30,7 @@ func main() {
 		"PrintStmt    : expression Expr",
 		"BlockStmt    : statements []Stmt",
 		"VarStmt    	: name Token, init Expr",
-		"ClassStmt    : name Token, methods []FunStmt, staticMethods []FunStmt",
+		"ClassStmt    : name Token, super *IdentifierExpr, methods []FunStmt, staticMethods []FunStmt",
 		"ReturnStmt   : keyword Token, value Expr",
 		"FunStmt    	: name Token, params []Token, body BlockStmt",
 		"IfStmt    		: condition Expr, consequent Stmt, alternate Stmt",

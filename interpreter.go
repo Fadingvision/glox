@@ -130,15 +130,21 @@ func (v Interpreter) visitClassStmt(stmt ClassStmt) {
 	// Two-stage variable binding process allows references to the class inside its own methods.
 	v.env.set(stmt.name.literal, nil)
 
-	methods := make(map[string]Function, 0)
-	staticMethods := make(map[string]Function, 0)
-	for _, fun := range stmt.methods {
-		methods[fun.name.literal] = Function{
-			fun,
-			v.env,
-			fun.name.literal == "init",
+	var super *Class
+
+	if stmt.super != nil {
+		if superClass, ok := v.evaluate(*stmt.super).(Class); ok {
+			super = &superClass
+		} else {
+			v.lox.errorReporter.error(RuntimeError{
+				stmt.super.name,
+				stmt.super.name.literal + "is not a class",
+			})
 		}
 	}
+
+	// NOTE: the order is important! cause wo don't need `super env` in our static methods
+	staticMethods := make(map[string]Function, 0)
 	for _, fun := range stmt.staticMethods {
 		staticMethods[fun.name.literal] = Function{
 			fun,
@@ -146,8 +152,38 @@ func (v Interpreter) visitClassStmt(stmt ClassStmt) {
 			false,
 		}
 	}
+
+	/*
+		Unlike dynamic `this`, `super` is static.
+		`super` should always refer to the superclass of the class containing the super expression.
+		so the super will be doomed when we are visiting class declaration
+	*/
+	// Add a new env to store "super"
+	if stmt.super != nil {
+		parent := v.env
+		v.env = env{
+			values: make(map[string]interface{}, 0),
+			parent: &parent,
+		}
+		v.env.set("super", *super)
+		// recover
+		defer func() {
+			v.env = parent
+		}()
+	}
+
+	methods := make(map[string]Function, 0)
+	for _, fun := range stmt.methods {
+		methods[fun.name.literal] = Function{
+			fun,
+			v.env,
+			fun.name.literal == "init",
+		}
+	}
+
 	class := Class{
 		stmt.name.literal,
+		super,
 		staticMethods,
 		methods,
 		make(map[string]interface{}, 0),
@@ -376,7 +412,7 @@ func (v Interpreter) visitIdentifierExpr(expr IdentifierExpr) interface{} {
 	}
 
 	if err != nil {
-		v.lox.errorReporter.errorWithoutExit(err)
+		v.lox.errorReporter.error(err)
 	}
 	return value
 }
@@ -394,9 +430,37 @@ func (v Interpreter) visitThisExpr(expr ThisExpr) interface{} {
 	}
 
 	if err != nil {
-		v.lox.errorReporter.errorWithoutExit(err)
+		v.lox.errorReporter.error(err)
 	}
 	return value
+}
+
+func (v Interpreter) visitSuperExpr(expr SuperExpr) interface{} {
+	distance := v.locals[expr]
+	superClass, err := v.env.getAt(expr.keyword, distance)
+	if err != nil {
+		v.lox.errorReporter.error(err)
+	}
+	// "this" is always one level nearer than "super"'s environment.
+	currentInstance, ok := v.env.getAtByName("this", distance-1)
+	if !ok {
+		// If this happens, it must be An inner error
+		v.lox.errorReporter.error(RuntimeError{
+			expr.keyword,
+			"illegal This binding",
+		})
+	}
+
+	method, ok := superClass.(Class).findMethod(expr.method.literal)
+	if !ok {
+		v.lox.errorReporter.error(RuntimeError{
+			expr.method,
+			"Undefined property name: '" + expr.method.literal + "'",
+		})
+	}
+
+	// this super class method need to bind on current instance
+	return method.bind(currentInstance.(ClassInstance))
 }
 
 func (v Interpreter) visitFunExpr(expr FunExpr) interface{} {

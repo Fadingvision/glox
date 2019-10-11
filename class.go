@@ -7,6 +7,7 @@ type Object interface {
 
 type Class struct {
 	name          string
+	super         *Class
 	staticMethods map[string]Function
 	methods       map[string]Function
 	fields        map[string]interface{}
@@ -60,6 +61,11 @@ func (c Class) arity() int {
 
 func (c Class) findMethod(name string) (Function, bool) {
 	val, ok := c.methods[name]
+
+	if !ok && c.super != nil {
+		val, ok = c.super.findMethod(name)
+	}
+
 	return val, ok
 }
 

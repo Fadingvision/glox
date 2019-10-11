@@ -135,6 +135,13 @@ func (p *Parser) classDeclaration() Stmt {
 	p.consume(IDENTIFIER, "class statements require a class name")
 	name := p.previous()
 
+	// check super class
+	var super *IdentifierExpr
+	if p.match(LESS) {
+		p.consume(IDENTIFIER, "Expect superClass name")
+		super = &IdentifierExpr{p.previous()}
+	}
+
 	p.consume(LEFT_BRACE, "Expect '{' before class body.")
 
 	methods := make([]FunStmt, 0)
@@ -149,7 +156,7 @@ func (p *Parser) classDeclaration() Stmt {
 
 	p.consume(RIGHT_BRACE, "Expect '}' after class body.")
 
-	return ClassStmt{name, methods, staticMethods}
+	return ClassStmt{name, super, methods, staticMethods}
 }
 
 func (p *Parser) functionDeclaration(kind string) FunStmt {
@@ -596,6 +603,12 @@ func (p *Parser) primary() Expr {
 	}
 	if p.match(THIS) {
 		return ThisExpr{p.previous()}
+	}
+	if p.match(SUPER) {
+		keyword := p.previous()
+		p.consume(DOT, "Expect '.' after super expression")
+		p.consume(IDENTIFIER, "Expect method name after super expression")
+		return SuperExpr{keyword, p.previous()}
 	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()

@@ -87,3 +87,6 @@ func (v AstPrinter) visitGetExpr(expr GetExpr) interface{} {
 func (v AstPrinter) visitThisExpr(expr ThisExpr) interface{} {
 	return "1 1 +"
 }
+func (v AstPrinter) visitSuperExpr(expr SuperExpr) interface{} {
+	return "1 1 +"
+}

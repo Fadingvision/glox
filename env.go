@@ -25,13 +25,20 @@ func (e env) get(token Token) (interface{}, error) {
 
 func (e env) getAt(token Token, distance int) (interface{}, error) {
 	environment := e.ancestor(distance)
-	// If our resolver wasn't lie to us, this must be ok
+	// If our resolver did not go wrong, this must be valid
 	value, ok := environment.values[token.literal]
 	if ok {
 		return value, nil
 	}
 
 	return nil, RuntimeError{token, "Undefined variable: " + token.literal}
+}
+
+func (e env) getAtByName(name string, distance int) (interface{}, bool) {
+	environment := e.ancestor(distance)
+	// If our resolver did not go wrong, this must be valid
+	value, ok := environment.values[name]
+	return value, ok
 }
 
 func (e env) ancestor(distance int) *env {

@@ -24,6 +24,7 @@ type Visitor interface {
 	visitSetExpr(expr SetExpr) interface{}
 	visitGetExpr(expr GetExpr) interface{}
 	visitThisExpr(expr ThisExpr) interface{}
+	visitSuperExpr(expr SuperExpr) interface{}
 }
 
 // StmtVisitor is the interface statements visitor should implement

@@ -161,7 +161,7 @@ cake.flavor = "German chocolate";
 cake.taste(); // Prints "The German chocolate cake is delicious!".
 
 
-// init function
+// static and init function
 class Foo {
   static add(a, b) {
     return a + b;
@@ -180,3 +180,25 @@ print foo.b; // Prints "456".
 print foo.init(222, 333); // Prints "<classInstance Foo".
 print foo.a; // Prints "222".
 print foo.b; // Prints "333".
+
+
+// extends and super identifier
+class A {
+  method() {
+    print "A method";
+  }
+}
+
+class B < A {
+  method() {
+    print "B method";
+  }
+
+  test() {
+    super.method();
+  }
+}
+
+class C < B {}
+
+print C().test(); // Print "A method"

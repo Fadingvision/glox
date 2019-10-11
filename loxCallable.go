@@ -86,6 +86,7 @@ func (f Function) bind(instance ClassInstance) Function {
 		parent: &f.closure,
 	}
 
+	// this is dynamic, it refers to different instances
 	environment.set("this", instance)
 
 	return Function{

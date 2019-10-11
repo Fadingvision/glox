@@ -142,13 +142,29 @@ func (r Resolver) visitClassStmt(stmt ClassStmt) {
 	r.declare(stmt.name)
 	r.define(stmt.name)
 
-	// No this in static methods
+	if stmt.super != nil {
+		if stmt.super.name.literal == stmt.name.literal {
+			r.lox.errorReporter.error(ParseError{
+				stmt.super.name,
+				"Cannot Access '" + stmt.super.name.literal + "' before initialization",
+			})
+		}
+		r.resolveExpr(*stmt.super)
+	}
+
+	// No this or super in static methods
 	for _, fun := range stmt.staticMethods {
 		functionType := METHOD
 		r.resolveFunction(fun, functionType)
 	}
 
-	// Add a new scope between method function scope and class declaration scope
+	// create a scope to store `super`
+	if stmt.super != nil {
+		r.scopes = r.beginScope()
+		r.scopes.peek()["super"] = true
+	}
+
+	// create a scope to store `this`
 	r.scopes = r.beginScope()
 	r.scopes.peek()["this"] = true
 
@@ -160,6 +176,10 @@ func (r Resolver) visitClassStmt(stmt ClassStmt) {
 		r.resolveFunction(fun, functionType)
 	}
 	r.endScope()
+
+	if stmt.super != nil {
+		r.endScope()
+	}
 
 	r.currentClass = parentClassType
 }
@@ -213,6 +233,12 @@ func (r Resolver) visitThisExpr(expr ThisExpr) interface{} {
 	}
 
 	// resolve this like any other local variable.
+	r.resolveLocal(expr, expr.keyword)
+	return nil
+}
+
+func (r Resolver) visitSuperExpr(expr SuperExpr) interface{} {
+	// give the distance about super to interpreter
 	r.resolveLocal(expr, expr.keyword)
 	return nil
 }
