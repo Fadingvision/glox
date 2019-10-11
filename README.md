@@ -2,7 +2,19 @@
 
 ### The lox language interpreter implemented in go
 
+
+### Get started
+
+```
+go build
+./lox index.lox
+```
+
+and then you can see our lox program begin to fly.
+
 -----
+
+## Notes on [Crafting interpreters Part II](http://www.craftinginterpreters.com/contents.html):
 
 ## 词法分析
 
