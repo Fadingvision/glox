@@ -131,6 +131,7 @@ func (v Interpreter) visitClassStmt(stmt ClassStmt) {
 	v.env.set(stmt.name.literal, nil)
 
 	methods := make(map[string]Function, 0)
+	staticMethods := make(map[string]Function, 0)
 	for _, fun := range stmt.methods {
 		methods[fun.name.literal] = Function{
 			fun,
@@ -138,10 +139,18 @@ func (v Interpreter) visitClassStmt(stmt ClassStmt) {
 			fun.name.literal == "init",
 		}
 	}
+	for _, fun := range stmt.staticMethods {
+		staticMethods[fun.name.literal] = Function{
+			fun,
+			v.env,
+			false,
+		}
+	}
 	class := Class{
 		stmt.name.literal,
+		staticMethods,
 		methods,
-		v,
+		make(map[string]interface{}, 0),
 	}
 	v.env.assign(stmt.name, class)
 }
@@ -418,7 +427,7 @@ func (v Interpreter) visitSequenceExpr(expr SequenceExpr) interface{} {
 func (v Interpreter) visitSetExpr(expr SetExpr) interface{} {
 	object := v.evaluate(expr.object)
 
-	if obj, ok := object.(ClassInstance); ok {
+	if obj, ok := object.(Object); ok {
 		value := v.evaluate(expr.value)
 		err := obj.set(expr.name, value)
 		if err != nil {
@@ -438,7 +447,7 @@ func (v Interpreter) visitSetExpr(expr SetExpr) interface{} {
 func (v Interpreter) visitGetExpr(expr GetExpr) interface{} {
 	object := v.evaluate(expr.object)
 
-	if obj, ok := object.(ClassInstance); ok {
+	if obj, ok := object.(Object); ok {
 		value, err := obj.get(expr.name)
 		if err != nil {
 			v.lox.errorReporter.error(err)

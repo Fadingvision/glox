@@ -142,6 +142,12 @@ func (r Resolver) visitClassStmt(stmt ClassStmt) {
 	r.declare(stmt.name)
 	r.define(stmt.name)
 
+	// No this in static methods
+	for _, fun := range stmt.staticMethods {
+		functionType := METHOD
+		r.resolveFunction(fun, functionType)
+	}
+
 	// Add a new scope between method function scope and class declaration scope
 	r.scopes = r.beginScope()
 	r.scopes.peek()["this"] = true

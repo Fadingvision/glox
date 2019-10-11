@@ -138,14 +138,18 @@ func (p *Parser) classDeclaration() Stmt {
 	p.consume(LEFT_BRACE, "Expect '{' before class body.")
 
 	methods := make([]FunStmt, 0)
+	staticMethods := make([]FunStmt, 0)
 
 	for !p.checkType(RIGHT_BRACE) && !p.isAtEnd() {
+		if p.match(STATIC) {
+			staticMethods = append(staticMethods, p.functionDeclaration("static method"))
+		}
 		methods = append(methods, p.functionDeclaration("method"))
 	}
 
 	p.consume(RIGHT_BRACE, "Expect '}' after class body.")
 
-	return ClassStmt{name, methods}
+	return ClassStmt{name, methods, staticMethods}
 }
 
 func (p *Parser) functionDeclaration(kind string) FunStmt {

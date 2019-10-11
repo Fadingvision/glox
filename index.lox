@@ -163,11 +163,16 @@ cake.taste(); // Prints "The German chocolate cake is delicious!".
 
 // init function
 class Foo {
+  static add(a, b) {
+    return a + b;
+  }
+
   init(a, b) {
     this.a = a;
     this.b = b;
   }
 }
+print Foo.add(1, 2); // Prints "3".
 var foo = Foo(123, 456);
 print foo.a; // Prints "123".
 print foo.b; // Prints "456".

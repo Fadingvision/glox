@@ -29,7 +29,7 @@ func main() {
 		"PrintStmt    : expression Expr",
 		"BlockStmt    : statements []Stmt",
 		"VarStmt    	: name Token, init Expr",
-		"ClassStmt    : name Token, methods []FunStmt",
+		"ClassStmt    : name Token, methods []FunStmt, staticMethods []FunStmt",
 		"ReturnStmt   : keyword Token, value Expr",
 		"FunStmt    	: name Token, params []Token, body BlockStmt",
 		"IfStmt    		: condition Expr, consequent Stmt, alternate Stmt",

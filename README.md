@@ -150,7 +150,7 @@ statement   → exprStmt
             | blockStmt ;
 
 varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
-classDecl   → "class" IDENTIFIER "{" function* "}" ;
+classDecl   → "class" IDENTIFIER "{" ("static")? function* "}" ;
 funDecl  → "fun" function ;
 
 function → IDENTIFIER "(" parameters? ")" block ;

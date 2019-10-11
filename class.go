@@ -1,9 +1,15 @@
 package main
 
+type Object interface {
+	get(name Token) (interface{}, error)
+	set(name Token, value interface{}) error
+}
+
 type Class struct {
-	name        string
-	methods     map[string]Function
-	interpreter Interpreter
+	name          string
+	staticMethods map[string]Function
+	methods       map[string]Function
+	fields        map[string]interface{}
 }
 
 // TODO: Add Class string representation
@@ -23,6 +29,26 @@ func (c Class) call(interpreter Interpreter, args []interface{}) interface{} {
 	}
 
 	return instance
+}
+
+func (c Class) get(name Token) (interface{}, error) {
+	if value, ok := c.fields[name.literal]; ok {
+		return value, nil
+	}
+
+	if method, ok := c.staticMethods[name.literal]; ok {
+		return method, nil
+	}
+
+	return nil, RuntimeError{
+		name,
+		"Undefined property",
+	}
+}
+
+func (c Class) set(name Token, value interface{}) error {
+	c.fields[name.literal] = value
+	return nil
 }
 
 func (c Class) arity() int {

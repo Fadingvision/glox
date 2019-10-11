@@ -40,6 +40,7 @@ const (
 	// Keywords.
 	AND
 	CLASS
+	STATIC
 	ELSE
 	FALSE
 	FUN
@@ -76,4 +77,5 @@ var keywords = map[string]TokenType{
 	"true":   TRUE,
 	"var":    VAR,
 	"while":  WHILE,
+	"static": STATIC,
 }
