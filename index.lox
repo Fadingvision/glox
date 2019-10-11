@@ -201,4 +201,4 @@ class B < A {
 
 class C < B {}
 
-print C().test(); // Print "A method"
+C().test(); // Print "A method"

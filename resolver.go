@@ -26,10 +26,12 @@ const (
 )
 
 const (
-	// NoneClass means we are not in a class statement body
+	// NONECLASS means we are not in a class statement body
 	NONECLASS classType = iota
-	// CLASS means we are in a class statement body
+	// INCLASS means we are in a class statement body
 	INCLASS
+	// SUBCLASS means we are in a sub-class statement body
+	SUBCLASS
 )
 
 /*
@@ -143,6 +145,7 @@ func (r Resolver) visitClassStmt(stmt ClassStmt) {
 	r.define(stmt.name)
 
 	if stmt.super != nil {
+		r.currentClass = SUBCLASS
 		if stmt.super.name.literal == stmt.name.literal {
 			r.lox.errorReporter.error(ParseError{
 				stmt.super.name,
@@ -150,6 +153,8 @@ func (r Resolver) visitClassStmt(stmt ClassStmt) {
 			})
 		}
 		r.resolveExpr(*stmt.super)
+	} else {
+		r.currentClass = INCLASS
 	}
 
 	// No this or super in static methods
@@ -238,6 +243,12 @@ func (r Resolver) visitThisExpr(expr ThisExpr) interface{} {
 }
 
 func (r Resolver) visitSuperExpr(expr SuperExpr) interface{} {
+	if r.currentClass != SUBCLASS {
+		r.lox.errorReporter.error(ParseError{
+			expr.keyword, "Illegal 'super'",
+		})
+	}
+
 	// give the distance about super to interpreter
 	r.resolveLocal(expr, expr.keyword)
 	return nil
