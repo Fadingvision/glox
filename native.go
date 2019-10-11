@@ -1,8 +1,11 @@
 package main
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
-// Clock to show current time
+// Clock shows current time
 type Clock struct{}
 
 func (c Clock) call(interpreter Interpreter, args []interface{}) interface{} {
@@ -17,4 +20,18 @@ func (c Clock) String() string {
 	return "<native fn>"
 }
 
-// TODO: make print as the native function instead of expression
+// Print shows stuff
+type Print struct{}
+
+func (p Print) call(interpreter Interpreter, args []interface{}) interface{} {
+	fmt.Println(args...)
+	return nil
+}
+
+func (p Print) arity() int {
+	return -1
+}
+
+func (p Print) String() string {
+	return "<native fn>"
+}

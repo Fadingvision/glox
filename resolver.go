@@ -308,9 +308,9 @@ func (r Resolver) visitWhileStmt(stmt WhileStmt) {
 	r.resolveStmt(stmt.body)
 }
 
-func (r Resolver) visitPrintStmt(stmt PrintStmt) {
-	r.resolveExpr(stmt.expression)
-}
+// func (r Resolver) visitPrintStmt(stmt PrintStmt) {
+// 	r.resolveExpr(stmt.expression)
+// }
 
 func (r Resolver) visitReturnStmt(stmt ReturnStmt) {
 	// with `r.currentFunction`, we can know if we are in function body when we met a return statement

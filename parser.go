@@ -193,9 +193,9 @@ func (p *Parser) functionDeclaration(kind string) FunStmt {
 }
 
 func (p *Parser) statement() Stmt {
-	if p.match(PRINT) {
-		return p.printStatement()
-	}
+	// if p.match(PRINT) {
+	// 	return p.printStatement()
+	// }
 	if p.match(RETURN) {
 		return p.returnStatement()
 	}
@@ -215,11 +215,11 @@ func (p *Parser) statement() Stmt {
 	return p.expressionStatement()
 }
 
-func (p *Parser) printStatement() Stmt {
-	expr := p.expression()
-	p.consume(SEMICOLON, "Unexpected end of input, Expect ';' after value")
-	return PrintStmt{expr}
-}
+// func (p *Parser) printStatement() Stmt {
+// 	expr := p.expression()
+// 	p.consume(SEMICOLON, "Unexpected end of input, Expect ';' after value")
+// 	return PrintStmt{expr}
+// }
 
 func (p *Parser) returnStatement() Stmt {
 	keyword := p.previous()

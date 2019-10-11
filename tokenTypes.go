@@ -49,7 +49,8 @@ const (
 	NIL
 	OR
 
-	PRINT
+	// PRINT
+
 	RETURN
 	SUPER
 	THIS
@@ -61,16 +62,16 @@ const (
 )
 
 var keywords = map[string]TokenType{
-	"and":    AND,
-	"class":  CLASS,
-	"else":   ELSE,
-	"false":  FALSE,
-	"for":    FOR,
-	"fun":    FUN,
-	"if":     IF,
-	"nil":    NIL,
-	"or":     OR,
-	"print":  PRINT,
+	"and":   AND,
+	"class": CLASS,
+	"else":  ELSE,
+	"false": FALSE,
+	"for":   FOR,
+	"fun":   FUN,
+	"if":    IF,
+	"nil":   NIL,
+	"or":    OR,
+	// "print":  PRINT,
 	"return": RETURN,
 	"super":  SUPER,
 	"this":   THIS,

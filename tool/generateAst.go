@@ -27,7 +27,7 @@ func main() {
 
 	generateAst("Stmt", []string{
 		"ExpressionStmt   : expression Expr",
-		"PrintStmt    : expression Expr",
+		// "PrintStmt    : expression Expr",
 		"BlockStmt    : statements []Stmt",
 		"VarStmt    	: name Token, init Expr",
 		"ClassStmt    : name Token, super *IdentifierExpr, methods []FunStmt, staticMethods []FunStmt",

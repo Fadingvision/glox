@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type RuntimeError struct {
 	token Token
@@ -46,6 +48,7 @@ func NewInterpreter(lox *Lox, global env) Interpreter {
 func (v Interpreter) init() {
 	// global functions
 	v.global.set("clock", Clock{})
+	v.global.set("print", Print{})
 }
 
 func (v Interpreter) resolve(expr Expr, distance int) {
@@ -112,10 +115,10 @@ func (v Interpreter) visitWhileStmt(stmt WhileStmt) {
 	}
 }
 
-func (v Interpreter) visitPrintStmt(stmt PrintStmt) {
-	value := v.evaluate(stmt.expression)
-	fmt.Println(value)
-}
+// func (v Interpreter) visitPrintStmt(stmt PrintStmt) {
+// 	value := v.evaluate(stmt.expression)
+// 	fmt.Println(value)
+// }
 
 func (v Interpreter) visitFunStmt(stmt FunStmt) {
 	// let the var declaration and function declaration use the same space
@@ -388,7 +391,7 @@ func (v Interpreter) visitCallExpr(expr CallExpr) interface{} {
 			expr.paren,
 			fmt.Sprintf("%T is not a function", function),
 		})
-	} else if len(args) != function.arity() {
+	} else if len(args) != function.arity() && function.arity() != -1 {
 		// match their argument numbers
 		v.lox.errorReporter.error(RuntimeError{
 			expr.paren,

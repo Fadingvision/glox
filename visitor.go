@@ -32,7 +32,7 @@ type StmtVisitor interface {
 	// unlike expressions, statements produce no values,
 	// so the return type of the visit methods is void, not Object
 	visitExpressionStmt(stmt ExpressionStmt)
-	visitPrintStmt(stmt PrintStmt)
+	// visitPrintStmt(stmt PrintStmt)
 	visitFunStmt(stmt FunStmt)
 	visitReturnStmt(stmt ReturnStmt)
 	visitVarStmt(stmt VarStmt)
