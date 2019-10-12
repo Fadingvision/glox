@@ -14,7 +14,40 @@ and then you can see our lox program begin to fly.
 
 -----
 
-## Notes on [Crafting interpreters Part II](http://www.craftinginterpreters.com/contents.html):
+## Notes on [Crafting interpreters](http://www.craftinginterpreters.com/contents.html):
+
+## Map
+
+```js
+FrontEnd: Source Code -> Tokens -> Syntax Tree -> high level language (babel, typescript, etc)
+                                                | Intermediate representations
+
+BackEnd: Intermediate representations -> high level language
+                                        | bytecode
+                                        | machine code
+```
+
+__virtual machine__: a program that emulates a hypothetical chip supporting your virtual architecture at runtime, Running bytecode in a VM is slower than translating it to native code ahead of time because every instruction must be simulated at runtime each time it executes. 
+
+__runtime__: some services that our language provides while the program is running. like garbage collector. it lives in VM or directly embedded in each compiled application.
+
+### shortcuts
+
+- __single-pass compilers__: Some simple compilers interleave parsing, analysis, and code generation so that they produce output code directly in the parser, without ever allocating any syntax trees or other IRs. like: `jsonc compiler`(just remove every-line comments in json, in this situation we don't revisit any previously parsed part of the code, don't need to store any global information)
+
+- __Tree-walk interpreters__: Some programming languages begin executing code right after parsing it to an AST (with maybe a bit of static analysis applied). To run the program, they traverse the syntax tree one branch and leaf at a time, evaluating each node as it goes. like: `glox`.
+
+- __Transpilers__: They used to call this a “source-to-source compiler” or a “transcompiler”. After the rise of languages that compile to JavaScript in order to run in the browser, they’ve affected the hipster sobriquet “transpiler”. like: `babel`, `typescipt`, `out ast printer in some way`
+
+- __Just-in-time compilation__: On the end user’s machine, when the program is loaded—either from source in the case of JS, or platform-independent bytecode for the JVM and CLR—you compile it to native for the architecture their computer supports. Naturally enough, this is called just-in-time compilation.
+
+### Compiler and interpreter
+
+Compiling is an implementation technique that involves translating a source language to some other—usually lower-level—form. When you generate bytecode or machine code, you are compiling. When you transpile to another high-level language you are compiling too.
+
+When we say a language implementation “is a compiler”, we mean it translates source code to some other form but doesn’t execute it. The user has to take the resulting output and run it themselves.
+
+Conversely, when we say an implementation “is an interpreter”, we mean it takes in source code and executes it immediately. It runs programs “from source”.
 
 ## 词法分析
 
@@ -181,6 +214,10 @@ forStmt   → "for" "(" ( varDecl | exprStmt | ";" )
                       expression? ")" statement ;
 ```
 
+### 递归下降
+
+递归下降是构造一个健壮的解析器的最简单的方法，不需要使用复杂的解析器生成器例如Yacc, Bison或者ANTLR。
+
 ### 类和继承
 
 类的实现方式通常有三种：
@@ -194,10 +231,6 @@ forStmt   → "for" "(" ( varDecl | exprStmt | ";" )
 - 暴露一个构造函数用来创建和初始化新的实例
 - 提供一个方法用来存储和读取实例上的字段
 - 定义被所有实例共享的一系列方法用来操控实例的状态
-
-### 递归下降
-
-递归下降是构造一个健壮的解析器的最简单的方法，不需要使用复杂的解析器生成器例如Yacc, Bison或者ANTLR。
 
 
 ### 错误处理
