@@ -6,11 +6,9 @@
 ### Get started
 
 ```
-go build
-./lox index.lox
+go get github.com/blackLearning/glox
+$GOPATH/bin/glox index.lox
 ```
-
-and then you can see our lox program begin to fly.
 
 -----
 
